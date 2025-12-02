@@ -7,18 +7,18 @@ const getBool = (v, def = false) => {
 };
 
 module.exports = {
-  port: process.env.PORT || 3000,
-  jwtSecret: process.env.JWT_SECRET || "change_me",
+  port: 3000,
+  jwtSecret: process.env.JWT_SECRET || "secretkey",
   db: {
-    type: (process.env.DB_TYPE || "postgresql").toLowerCase(),
+    type: "mongodb",
   },
   routes: {
-    auth: getBool(process.env.ENABLE_AUTH, true),
-    users: getBool(process.env.ENABLE_USERS, true),
-    products: getBool(process.env.ENABLE_PRODUCTS, true),
-    categories: getBool(process.env.ENABLE_CATEGORIES, true),
-    orders: getBool(process.env.ENABLE_ORDERS, true),
-    reviews: getBool(process.env.ENABLE_REVIEWS, true),
+    auth: true,
+    users: true,
+    products: true,
+    categories: true,
+    orders: true,
+    reviews: true,
   },
   rawEnv: process.env,
 };
