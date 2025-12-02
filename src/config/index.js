@@ -6,9 +6,9 @@ export const config = {
   port: 3000,
   jwtSecret: "secretkey",
   db: {
-    type: "mongodb",
-    dbuser: "dey70473_sayanuser",
-    dbpassword: "zASvZNJXyt8aoqqV",
+    type: "",
+    dbuser: "",
+    dbpassword: "",
     dbhost: "cluster0.ekiep4r.mongodb.net",
     dbname: "shopdb",
   },
