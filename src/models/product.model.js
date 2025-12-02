@@ -1,11 +1,11 @@
-import { config as cfg } from "../config/index.js";
+import { config as cfg, dbs } from "../config/index.js";
 
 let knex;
 let mongoose;
 let ProductM;
 
 async function init(dbHandles) {
-  if (cfg.db.type === cfg.dbs.MONGODB) {
+  if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
     const s = new mongoose.Schema(
       {
@@ -24,7 +24,7 @@ async function init(dbHandles) {
 }
 
 async function createProduct(data) {
-  if (cfg.db.type === "mongodb") return ProductM.create(data);
+  if (cfg.db.type === dbs.MONGODB) return ProductM.create(data);
   const [id] = await knex("products")
     .insert(data)
     .returning("id")
@@ -39,24 +39,24 @@ async function createProduct(data) {
 }
 
 async function listProducts() {
-  if (cfg.db.type === "mongodb") return ProductM.find().lean();
+  if (cfg.db.type === dbs.MONGODB) return ProductM.find().lean();
   return knex("products").select("*");
 }
 
 async function getProduct(id) {
-  if (cfg.db.type === "mongodb") return ProductM.findById(id).lean();
+  if (cfg.db.type === dbs.MONGODB) return ProductM.findById(id).lean();
   return knex("products").where({ id }).first();
 }
 
 async function updateProduct(id, changes) {
-  if (cfg.db.type === "mongodb")
+  if (cfg.db.type === dbs.MONGODB)
     return ProductM.findByIdAndUpdate(id, changes, { new: true }).lean();
   await knex("products").where({ id }).update(changes);
   return knex("products").where({ id }).first();
 }
 
 async function deleteProduct(id) {
-  if (cfg.db.type === "mongodb") return ProductM.findByIdAndDelete(id);
+  if (cfg.db.type === dbs.MONGODB) return ProductM.findByIdAndDelete(id);
   return knex("products").where({ id }).del();
 }
 

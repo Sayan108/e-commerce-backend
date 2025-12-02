@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { config as cfg } from "../config/index.js";
+import { config as cfg, dbs, Roles } from "../config/index.js";
 
 let knex;
 let mongoose;
@@ -7,7 +7,7 @@ let UserSchema;
 let UserM;
 
 async function init(dbHandles) {
-  if (cfg.db.type === "mongodb") {
+  if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
     // define schema
     UserSchema = new mongoose.Schema(
@@ -15,20 +15,19 @@ async function init(dbHandles) {
         name: String,
         email: { type: String, unique: true },
         password: String,
-        role: { type: String, default: "customer" },
+        role: { type: String, default: Roles.CUSTOMER },
       },
       { timestamps: true }
     );
     UserM = mongoose.models.User || mongoose.model("User", UserSchema);
   } else {
     knex = dbHandles.knex;
-    // for SQL we assume table 'users' exists. migrations are out of scope here.
   }
 }
 
-async function createUser({ name, email, password, role = "customer" }) {
+async function createUser({ name, email, password, role = Roles.CUSTOMER }) {
   const hash = await bcrypt.hash(password, 10);
-  if (cfg.db.type === "mongodb") {
+  if (cfg.db.type === dbs.MONGODB) {
     return UserM.create({ name, email, password: hash, role });
   } else {
     const [id] = await knex("users")
@@ -52,12 +51,12 @@ async function createUser({ name, email, password, role = "customer" }) {
 }
 
 async function findByEmail(email) {
-  if (cfg.db.type === "mongodb") return UserM.findOne({ email }).lean();
+  if (cfg.db.type === dbs.MONGODB) return UserM.findOne({ email }).lean();
   return knex("users").where({ email }).first();
 }
 
 async function findById(id) {
-  if (cfg.db.type === "mongodb") return UserM.findById(id).lean();
+  if (cfg.db.type === dbs.MONGODB) return UserM.findById(id).lean();
   return knex("users").where({ id }).first();
 }
 

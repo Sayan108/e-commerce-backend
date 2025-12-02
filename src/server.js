@@ -3,8 +3,8 @@ import bodyParser from "body-parser";
 
 import { config as cfg } from "./config/index.js";
 import { router as routes } from "./routes/index.js";
-import createKnex from "./db/knexClient.js";
-import connectMongoose from "./db/mongooseClient.js";
+import createKnex from "./db/knex.client.js";
+import connectMongoose from "./db/mongoose.client.js";
 
 import userModel from "./models/user.model.js";
 import productModel from "./models/product.model.js";

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { config as cfg } from "../config/index.js";
 import userModel from "../models/user.model.js";
+import { Messages } from "../config/messages.js";
 
 function signToken(user) {
   return jwt.sign({ id: user.id || user._id, role: user.role }, cfg.jwtSecret, {
@@ -11,16 +12,19 @@ function signToken(user) {
 async function authMiddleware(req, res, next) {
   const h = req.headers.authorization;
   if (!h || !h.startsWith("Bearer "))
-    return res.status(401).json({ error: "Missing token" });
+    return res.status(401).json({ error: Messages.AUTH.ERROR_UNAUTHORIZED });
   const token = h.slice(7);
   try {
     const payload = jwt.verify(token, cfg.jwtSecret);
     const user = await userModel.findById(payload.id);
-    if (!user) return res.status(401).json({ error: "User not found" });
+    if (!user)
+      return res
+        .status(401)
+        .json({ error: Messages.AUTH.ERROR_ACCOUNT_NOT_FOUND });
     req.user = { id: user.id || user._id, role: user.role };
     next();
   } catch (e) {
-    return res.status(401).json({ error: "Invalid token" });
+    return res.status(401).json({ error: Messages.AUTH.ERROR_TOKEN_EXPIRED });
   }
 }
 

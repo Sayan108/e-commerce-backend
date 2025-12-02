@@ -2,16 +2,15 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const getBool = (v, def = false) => {
-  if (v === undefined) return def;
-  return String(v).toLowerCase() === "true";
-};
-
 export const config = {
   port: 3000,
-  jwtSecret: process.env.JWT_SECRET || "secretkey",
+  jwtSecret: "secretkey",
   db: {
-    type: process.env.DB_TYPE || "mongodb",
+    type: "mongodb",
+    dbuser: "dey70473_sayanuser",
+    dbpassword: "zASvZNJXyt8aoqqV",
+    dbhost: "cluster0.ekiep4r.mongodb.net",
+    dbname: "shopdb",
   },
   routes: {
     auth: true,
@@ -21,12 +20,11 @@ export const config = {
     orders: true,
     reviews: true,
   },
-  rawEnv: process.env,
 };
 
 export const Roles = {
   ADMIN: "admin",
-  customer: "customer",
+  CUSTOMER: "customer",
   SUPERADMIN: "superadmin",
 };
 
@@ -42,4 +40,13 @@ export const orderStatuses = {
   SHIPPED: "shipped",
   DELIVERED: "delivered",
   CANCELLED: "cancelled",
+};
+
+export const sqlTableNames = {
+  USERS: "users",
+  PRODUCTS: "products",
+  CATEGORIES: "categories",
+  ORDERS: "orders",
+  ORDER_ITEMS: "order_items",
+  REVIEWS: "reviews",
 };

@@ -38,7 +38,7 @@ async function placeOrder(order) {
 }
 
 async function userHasPurchased(userId, productId) {
-  if (cfg.db.type === "mongodb") {
+  if (cfg.db.type === dbs.MONGODB) {
     const count = await OrderM.countDocuments({
       userId,
       "items.productId": productId,
@@ -55,4 +55,26 @@ async function userHasPurchased(userId, productId) {
   return rows.length > 0;
 }
 
-export default { init, placeOrder, userHasPurchased };
+async function updateOrderStatus(orderId, status) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return OrderM.findByIdAndUpdate(orderId, { status }, { new: true });
+  }
+  await knex("orders").where({ id: orderId }).update({ status });
+  return knex("orders").where({ id: orderId }).first();
+}
+
+async function updateOrderDetails(orderId, details) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return OrderM.findByIdAndUpdate(orderId, details, { new: true });
+  }
+  await knex("orders").where({ id: orderId }).update(details);
+  return knex("orders").where({ id: orderId }).first();
+}
+
+export default {
+  init,
+  placeOrder,
+  userHasPurchased,
+  updateOrderStatus,
+  updateOrderDetails,
+};

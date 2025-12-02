@@ -1,11 +1,11 @@
-import { config as cfg } from "../config/index.js";
+import { config as cfg, dbs } from "../config/index.js";
 
 let knex;
 let mongoose;
 let ReviewM;
 
 async function init(dbHandles) {
-  if (cfg.db.type === "mongodb") {
+  if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
     const s = new mongoose.Schema(
       {
@@ -23,7 +23,7 @@ async function init(dbHandles) {
 }
 
 async function createReview(data) {
-  if (cfg.db.type === "mongodb") return ReviewM.create(data);
+  if (cfg.db.type === dbs.MONGODB) return ReviewM.create(data);
   const [id] = await knex("reviews")
     .insert(data)
     .returning("id")
@@ -37,4 +37,30 @@ async function createReview(data) {
   return knex("reviews").where({ id }).first();
 }
 
-export default { init, createReview };
+async function listReviewsByProduct(productId) {
+  if (cfg.db.type === dbs.MONGODB) return ReviewM.find({ productId }).lean();
+  return knex("reviews").where({ productId }).select("*");
+}
+
+async function deleteReview(id) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return ReviewM.findByIdAndDelete(id);
+  }
+  return knex("reviews").where({ id }).del();
+}
+
+async function updateReview(id, changes) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return ReviewM.findByIdAndUpdate(id, changes, { new: true });
+  }
+  await knex("reviews").where({ id }).update(changes);
+  return knex("reviews").where({ id }).first();
+}
+
+export default {
+  init,
+  createReview,
+  listReviewsByProduct,
+  deleteReview,
+  updateReview,
+};

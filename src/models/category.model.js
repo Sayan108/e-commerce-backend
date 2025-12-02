@@ -34,4 +34,25 @@ async function listCategories() {
   return knex("categories").select("*");
 }
 
-export default { init, createCategory, listCategories };
+async function updateCategory(categoryId, data) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return CatM.findByIdAndUpdate(categoryId, data, { new: true });
+  }
+  await knex("categories").where({ id: categoryId }).update(data);
+  return knex("categories").where({ id: categoryId }).first();
+}
+
+async function deleteCategory(categoryId) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return CatM.findByIdAndDelete(categoryId);
+  }
+  return knex("categories").where({ id: categoryId }).del();
+}
+
+export default {
+  init,
+  createCategory,
+  listCategories,
+  updateCategory,
+  deleteCategory,
+};
