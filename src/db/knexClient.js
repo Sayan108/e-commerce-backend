@@ -1,7 +1,7 @@
-const knex = require("knex");
-const cfg = require("../config");
+import knex from "knex";
+import { config as cfg } from "../config/index.js";
 
-function createKnex() {
+export default function createKnex() {
   const type = cfg.db.type;
   const clientMap = {
     mysql: "mysql2",
@@ -23,5 +23,3 @@ function createKnex() {
     pool: { min: 0, max: 7 },
   });
 }
-
-module.exports = createKnex;

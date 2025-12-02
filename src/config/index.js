@@ -1,4 +1,5 @@
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
+
 dotenv.config();
 
 const getBool = (v, def = false) => {
@@ -6,11 +7,11 @@ const getBool = (v, def = false) => {
   return String(v).toLowerCase() === "true";
 };
 
-module.exports = {
+export const config = {
   port: 3000,
   jwtSecret: process.env.JWT_SECRET || "secretkey",
   db: {
-    type: "mongodb",
+    type: process.env.DB_TYPE || "mongodb",
   },
   routes: {
     auth: true,
@@ -21,4 +22,24 @@ module.exports = {
     reviews: true,
   },
   rawEnv: process.env,
+};
+
+export const Roles = {
+  ADMIN: "admin",
+  customer: "customer",
+  SUPERADMIN: "superadmin",
+};
+
+export const dbs = {
+  MONGODB: "mongodb",
+  MYSQL: "mysql",
+  POSTGRESQL: "postgresql",
+  MSSQL: "mssql",
+};
+
+export const orderStatuses = {
+  PLACED: "placed",
+  SHIPPED: "shipped",
+  DELIVERED: "delivered",
+  CANCELLED: "cancelled",
 };

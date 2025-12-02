@@ -1,11 +1,11 @@
-const cfg = require("../config");
+import { config as cfg } from "../config/index.js";
 
 let knex;
 let mongoose;
 let ProductM;
 
 async function init(dbHandles) {
-  if (cfg.db.type === "mongodb") {
+  if (cfg.db.type === cfg.dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
     const s = new mongoose.Schema(
       {
@@ -60,7 +60,7 @@ async function deleteProduct(id) {
   return knex("products").where({ id }).del();
 }
 
-module.exports = {
+export default {
   init,
   createProduct,
   listProducts,

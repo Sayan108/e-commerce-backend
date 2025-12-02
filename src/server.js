@@ -1,23 +1,22 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cfg = require("./config");
-const routes = require("./routes");
-const createKnex = require("./db/knexClient");
-const connectMongoose = require("./db/mongooseClient");
+import express from "express";
+import bodyParser from "body-parser";
 
-const userModel = require("./models/userModel");
-const productModel = require("./models/productModel");
-const categoryModel = require("./models/categoryModel");
-const orderModel = require("./models/orderModel");
-const reviewModel = require("./models/reviewModel");
+import { config as cfg } from "./config/index.js";
+import { router as routes } from "./routes/index.js";
+import createKnex from "./db/knexClient.js";
+import connectMongoose from "./db/mongooseClient.js";
+
+import userModel from "./models/user.model.js";
+import productModel from "./models/product.model.js";
+import categoryModel from "./models/category.model.js";
+import orderModel from "./models/order.model.js";
+import reviewModel from "./models/review.model.js";
 
 async function main() {
   const app = express();
   app.use(bodyParser.json());
 
   let dbHandles = {};
-
-  console.log(`Connecting to database: ${JSON.stringify(cfg).port}`);
   if (cfg.db.type === "mongodb") {
     const mongoose = await connectMongoose();
     dbHandles.mongoose = mongoose;
@@ -44,7 +43,9 @@ async function main() {
   });
 }
 
-main().catch((err) => {
-  console.error("Failed to start", err);
+try {
+  await main();
+} catch (error) {
+  console.error("Failed to start", error);
   process.exit(1);
-});
+}

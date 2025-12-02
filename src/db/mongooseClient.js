@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-async function connectMongoose() {
+export default async function connectMongoose() {
+  console.log("Connecting to MongoDB...", process.env.DB_HOST);
   const host = process.env.DB_HOST || "localhost";
   const port = process.env.DB_PORT || 27017;
   const name = process.env.DB_NAME || "shopdb";
@@ -11,5 +12,3 @@ async function connectMongoose() {
   await mongoose.connect(uri, { autoIndex: true });
   return mongoose;
 }
-
-module.exports = connectMongoose;

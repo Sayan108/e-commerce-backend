@@ -1,4 +1,4 @@
-const cfg = require("../config");
+import { config as cfg } from "../config/index.js";
 
 let knex;
 let mongoose;
@@ -37,4 +37,4 @@ async function createReview(data) {
   return knex("reviews").where({ id }).first();
 }
 
-module.exports = { init, createReview };
+export default { init, createReview };

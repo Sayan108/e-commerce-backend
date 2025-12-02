@@ -1,5 +1,5 @@
-const bcrypt = require("bcrypt");
-const cfg = require("../config");
+import bcrypt from "bcrypt";
+import { config as cfg } from "../config/index.js";
 
 let knex;
 let mongoose;
@@ -61,4 +61,4 @@ async function findById(id) {
   return knex("users").where({ id }).first();
 }
 
-module.exports = { init, createUser, findByEmail, findById };
+export default { init, createUser, findByEmail, findById };

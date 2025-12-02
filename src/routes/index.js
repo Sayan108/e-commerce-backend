@@ -1,11 +1,12 @@
-const express = require("express");
-const cfg = require("../config");
-const auth = require("./auth");
-const users = require("./users");
-const products = require("./products");
-const categories = require("./categories");
-const orders = require("./orders");
-const reviews = require("./reviews");
+import express from "express";
+import { config as cfg } from "../config/index.js";
+
+import { router as auth } from "./auth.routes.js";
+import { router as users } from "./users.routes.js";
+import { router as products } from "./products.routes.js";
+import { router as categories } from "./categories.routes.js";
+import { router as orders } from "./orders.routes.js";
+import { router as reviews } from "./reviews.routes.js";
 
 const router = express.Router();
 
@@ -16,4 +17,4 @@ if (cfg.routes.categories) router.use("/categories", categories);
 if (cfg.routes.orders) router.use("/orders", orders);
 if (cfg.routes.reviews) router.use("/reviews", reviews);
 
-module.exports = router;
+export { router };

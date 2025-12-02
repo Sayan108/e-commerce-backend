@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
-const cfg = require("../config");
-const userModel = require("../models/userModel");
+import jwt from "jsonwebtoken";
+import { config as cfg } from "../config/index.js";
+import userModel from "../models/user.model.js";
 
 function signToken(user) {
   return jwt.sign({ id: user.id || user._id, role: user.role }, cfg.jwtSecret, {
@@ -24,4 +24,4 @@ async function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = { signToken, authMiddleware };
+export { signToken, authMiddleware };
