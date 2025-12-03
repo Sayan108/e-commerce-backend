@@ -41,7 +41,15 @@ async function main() {
 
   app.use("/api", routes);
 
-  app.get("/", (res) => res.json({ ok: true, db: cfg.db.type }));
+  app.get("/", (req, res) => res.json({ ok: true, db: cfg.db.type }));
+
+  app.use((err, req, res, next) => {
+    console.error("GLOBAL ERROR:", err);
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message || "Internal Server Error",
+    });
+  });
 
   app.listen(cfg.port, () => {
     console.log(`Server running on port ${cfg.port} with DB=${cfg.db.type}`);
