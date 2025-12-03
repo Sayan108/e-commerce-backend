@@ -12,7 +12,7 @@ async function init(dbHandles) {
         name: String,
         description: String,
         price: Number,
-        categoryId: String,
+        categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
         stock: Number,
       },
       { timestamps: true }

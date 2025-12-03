@@ -9,8 +9,19 @@ async function init(dbHandles) {
     mongoose = dbHandles.mongoose;
     const s = new mongoose.Schema(
       {
-        userId: String,
-        items: [{ productId: String, qty: Number, price: Number }],
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        items: [
+          {
+            productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+            qty: Number,
+            price: Number,
+            productName: String,
+          },
+        ],
         total: Number,
         status: String,
       },

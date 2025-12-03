@@ -11,6 +11,7 @@ import productModel from "./models/product.model.js";
 import categoryModel from "./models/category.model.js";
 import orderModel from "./models/order.model.js";
 import reviewModel from "./models/review.model.js";
+import ecommercedashboardModel from "./models/ecommercedashboard.model.js";
 
 async function main() {
   const app = express();
@@ -33,11 +34,12 @@ async function main() {
     categoryModel.init(dbHandles),
     orderModel.init(dbHandles),
     reviewModel.init(dbHandles),
+    ecommercedashboardModel.init(dbHandles),
   ]);
 
   app.use("/api", routes);
 
-  app.get("/", (req, res) => res.json({ ok: true, db: cfg.db.type }));
+  app.get("/", (res) => res.json({ ok: true, db: cfg.db.type }));
 
   app.listen(cfg.port, () => {
     console.log(`Server running on port ${cfg.port} with DB=${cfg.db.type}`);

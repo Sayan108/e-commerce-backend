@@ -21,6 +21,7 @@ export const config = {
     categories: true,
     orders: true,
     reviews: true,
+    ecommercedashboard: true,
   },
 };
 

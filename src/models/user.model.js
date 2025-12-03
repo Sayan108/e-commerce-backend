@@ -16,6 +16,7 @@ async function init(dbHandles) {
         email: { type: String, unique: true },
         password: String,
         role: { type: String, default: Roles.CUSTOMER },
+        token: [{ type: String }],
       },
       { timestamps: true }
     );
@@ -60,4 +61,18 @@ async function findById(id) {
   return knex("users").where({ id }).first();
 }
 
-export default { init, createUser, findByEmail, findById };
+async function updateUser(id, changes) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return UserM.findByIdAndUpdate(id, changes, { new: true }).lean();
+  }
+  await knex("users").where({ id }).update(changes);
+  return knex("users").where({ id }).first();
+}
+
+export default {
+  init,
+  createUser,
+  findByEmail,
+  findById,
+  updateUser,
+};
