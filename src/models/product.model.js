@@ -115,7 +115,6 @@ export default {
   init,
   createProduct,
   listProducts,
-  getProduct,
   updateProduct,
   deleteProduct,
   getProductById,

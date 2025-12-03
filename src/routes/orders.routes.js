@@ -9,6 +9,7 @@ import {
   updateOrderStatus,
 } from "../controllers/orders.controller.js";
 import { requireRole } from "../middleware/roles.middleware.js";
+import { Roles } from "../config/index.js";
 
 router.post("/", authMiddleware, createOrder);
 

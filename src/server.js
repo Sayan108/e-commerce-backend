@@ -12,6 +12,7 @@ import categoryModel from "./models/category.model.js";
 import orderModel from "./models/order.model.js";
 import reviewModel from "./models/review.model.js";
 import ecommercedashboardModel from "./models/ecommercedashboard.model.js";
+import addressModel from "./models/address.model.js";
 
 async function main() {
   const app = express();

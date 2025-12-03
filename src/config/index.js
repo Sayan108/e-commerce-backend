@@ -6,13 +6,7 @@ export const config = {
   port: 3000,
   jwtSecret: "secretkey",
   db: {
-    type: "",
-    dbuser: "",
-    dbpassword: "",
-    dbhost: "cluster0.ekiep4r.mongodb.net",
-    dbname: "shopdb",
     type: "mongodb",
-    dbport: 21017,
   },
   routes: {
     auth: true,
