@@ -11,6 +11,8 @@ export const config = {
     dbpassword: "",
     dbhost: "cluster0.ekiep4r.mongodb.net",
     dbname: "shopdb",
+    type: "mongodb",
+    dbport: 21017,
   },
   routes: {
     auth: true,

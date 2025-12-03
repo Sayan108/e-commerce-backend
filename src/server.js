@@ -17,6 +17,7 @@ async function main() {
   app.use(bodyParser.json());
 
   let dbHandles = {};
+
   if (cfg.db.type === "mongodb") {
     const mongoose = await connectMongoose();
     dbHandles.mongoose = mongoose;

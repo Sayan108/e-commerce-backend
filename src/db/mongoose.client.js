@@ -11,7 +11,7 @@ export default async function connectMongoose() {
   const encodedPassword = encodeURIComponent(pass || "");
 
   // Build URI
-  const uri = `mongodb+srv://${user}:${encodedPassword}@${host}/${dbname}?retryWrites=true&w=majority`;
+  const uri = "mongodb://127.0.0.1:27017/shopdb";
 
   try {
     await mongoose.connect(uri, {

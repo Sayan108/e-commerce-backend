@@ -15,6 +15,8 @@ export const Messages = {
     ERROR_ACCOUNT_NOT_FOUND: "Account not found.",
     ERROR_ACCOUNT_DISABLED: "Your account is disabled. Contact support.",
     ERROR_TOKEN_EXPIRED: "Session expired, please login again.",
+    INVALID_ROLE: "Invalid role specified.",
+    CANNOT_ASSIGN_ROLE: "Cannot assign role during registration.",
   },
 
   USER: {

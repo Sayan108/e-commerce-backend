@@ -1,4 +1,4 @@
-import { config as cfg } from "../config/index.js";
+import { config as cfg, dbs } from "../config/index.js";
 
 let knex;
 let mongoose;
