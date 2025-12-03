@@ -28,6 +28,7 @@ export const deleteProduct = async (req, res) => {
 export const bulkInsertProducts = async (req, res) => {
   try {
     const products = req.body.products;
+
     const inserted = await productModel.bulkInsertProducts(products);
     res.json({ inserted, message: "Products inserted successfully." });
   } catch (error) {

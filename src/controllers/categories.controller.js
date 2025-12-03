@@ -25,6 +25,7 @@ export const getAllCategories = async (res) => {
 
 export const bulkInsertCategories = async (req, res) => {
   try {
+    console.log(req.body.categories);
     const categories = req.body.categories;
     const inserted = await categoryModel.bulkInsertCategories(categories);
     res.json({ inserted, message: "Categories inserted successfully." });

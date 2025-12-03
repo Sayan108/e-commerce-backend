@@ -66,10 +66,34 @@ async function deleteProduct(id) {
 }
 
 async function bulkInsertProducts(products) {
-  if (cfg.db.type === dbs.MONGODB) {
-    return ProductM.insertMany(products);
+  if (!Array.isArray(products) || products.length === 0) {
+    throw new Error("Products must be a non-empty array");
   }
-  return knex("products").insert(products);
+
+  // ---------- ✅ MongoDB ----------
+
+  if (cfg.db.type === dbs.MONGODB) {
+    return ProductM.insertMany(products, {
+      ordered: false, // prevents full failure if one item is invalid
+    });
+  }
+
+  // ---------- ✅ SQL (Knex with Transaction) ----------
+  return knex.transaction(async (trx) => {
+    const ids = await trx("products")
+      .insert(products)
+      .returning("id")
+      .catch(async (err) => {
+        // MySQL / SQLite fallback
+        if (err?.message?.includes("RETURNING")) {
+          const res = await trx("products").insert(products);
+          return res;
+        }
+        throw err;
+      });
+
+    return ids;
+  });
 }
 
 export default {

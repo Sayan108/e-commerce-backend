@@ -1,6 +1,7 @@
 import userModel from "../models/user.model.js";
 
 import bcrypt from "bcrypt";
+
 import { signToken } from "../middleware/auth.middleware.js";
 import { Messages } from "../config/messages.js";
 import { Roles } from "../config/index.js";
