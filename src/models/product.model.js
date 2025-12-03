@@ -48,11 +48,6 @@ async function listProducts() {
   return knex("products").select("*");
 }
 
-async function getProduct(id) {
-  if (cfg.db.type === dbs.MONGODB) return ProductM.findById(id).lean();
-  return knex("products").where({ id }).first();
-}
-
 async function updateProduct(id, changes) {
   if (cfg.db.type === dbs.MONGODB)
     return ProductM.findByIdAndUpdate(id, changes, { new: true }).lean();
@@ -96,6 +91,26 @@ async function bulkInsertProducts(products) {
   });
 }
 
+async function getProductById(productId) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return ProductM.findById(productId);
+  }
+  return knex("products").where({ id: productId }).first();
+}
+
+async function validateProducts(items) {
+  if (cfg.db.type === dbs.MONGODB) {
+    const productIds = items.map((item) => item.productId);
+    const products = await ProductM.find({ _id: { $in: productIds } }).lean();
+
+    return productIds.length === products.length;
+  }
+  const productIds = items.map((item) => item.productId);
+  const products = await knex("products").whereIn("id", productIds);
+
+  return productIds.length === products.length;
+}
+
 export default {
   init,
   createProduct,
@@ -103,5 +118,7 @@ export default {
   getProduct,
   updateProduct,
   deleteProduct,
+  getProductById,
   bulkInsertProducts,
+  validateProducts,
 };

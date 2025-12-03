@@ -114,4 +114,13 @@ export const Messages = {
     BAD_REQUEST: "Bad request.",
     MAINTENANCE: "Server is under maintenance.",
   },
+
+  ADDRESS: {
+    ADDRESS_CREATED: "Address created successfully.",
+    ADDRESS_UPDATED: "Address updated successfully.",
+    ADDRESS_DELETED: "Address deleted successfully.",
+    ERROR_ADDRESS_CREATION: "Address creation failed .",
+    ADDRESS_FETCH_SUCCESS: "Address fetched successfully.",
+    ERROR_ADDRESS_FETCH: "Address fetch failed .",
+  },
 };

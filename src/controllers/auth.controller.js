@@ -36,12 +36,12 @@ export const register = async (req, res) => {
 
 export const logout = async (req, res) => {
   // For stateless JWT, logout can be handled on client side by deleting the token.
-  const user = userModel.findById(req.user._id);
+  const user = userModel.findById(req.user.id);
   if (!user) {
     return res.status(400).json({ error: Messages.AUTH.USER_NOT_FOUND });
   }
   const removedToken = user.token.filter((t) => t !== req.token);
-  await userModel.updateUser(req.user._id, { token: removedToken });
+  await userModel.updateUser(req.user.id, { token: removedToken });
   res.json({ message: Messages.AUTH.LOGOUT_SUCCESS });
 };
 

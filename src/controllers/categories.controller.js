@@ -23,9 +23,47 @@ export const getAllCategories = async (res) => {
   }
 };
 
+export const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: "Category ID is required." });
+    }
+    const existingCategory = await categoryModel.getCategoryById(id);
+    if (!existingCategory) {
+      return res.status(404).json({ error: "Category not found." });
+    }
+
+    await categoryModel.deleteCategory(id);
+    res.json({ message: Messages.CATEGORY.CATEGORY_DELETED });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error, message: Messages.CATEGORY.ERROR_CATEGORY_DELETION });
+  }
+};
+
+export const updateCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: "Category ID is required." });
+    }
+    const existingCategory = await categoryModel.getCategoryById(id);
+    if (!existingCategory) {
+      return res.status(404).json({ error: "Category not found." });
+    }
+    const updated = await categoryModel.updateCategory(id, req.body);
+    res.json({ updated, message: Messages.CATEGORY.CATEGORY_UPDATED });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error, message: Messages.CATEGORY.ERROR_CATEGORY_UPDATE });
+  }
+};
+
 export const bulkInsertCategories = async (req, res) => {
   try {
-    console.log(req.body.categories);
     const categories = req.body.categories;
     const inserted = await categoryModel.bulkInsertCategories(categories);
     res.json({ inserted, message: "Categories inserted successfully." });

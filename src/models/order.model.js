@@ -14,6 +14,18 @@ async function init(dbHandles) {
           ref: "User",
           required: true,
         },
+        shippingAddressId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Address",
+          required: true,
+        },
+        billingAddressId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Address",
+          required: true,
+        },
+        billingaddress: { type: String, required },
+        shippingaddress: { type: String, required },
         items: [
           {
             productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
@@ -34,7 +46,7 @@ async function init(dbHandles) {
 }
 
 async function placeOrder(order) {
-  if (cfg.db.type === "mongodb") return OrderM.create(order);
+  if (cfg.db.type === dbs.MONGODB) return OrderM.create(order);
   const [id] = await knex("orders")
     .insert(order)
     .returning("id")
@@ -82,10 +94,33 @@ async function updateOrderDetails(orderId, details) {
   return knex("orders").where({ id: orderId }).first();
 }
 
+async function getOrdersByUserId(userId) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return OrderM.find().where({ userId });
+  }
+  return knex("orders").where({ userId });
+}
+
+async function getOrderById(orderId) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return OrderM.findById(orderId);
+  }
+  return knex("orders").where({ id: orderId }).first();
+}
+
+async function getAllOrders() {
+  if (cfg.db.type === dbs.MONGODB) {
+    return OrderM.find();
+  }
+  return knex("orders");
+}
+
 export default {
   init,
   placeOrder,
   userHasPurchased,
   updateOrderStatus,
   updateOrderDetails,
+  getOrdersByUserId,
+  getAllOrders,
 };

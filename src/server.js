@@ -35,6 +35,7 @@ async function main() {
     orderModel.init(dbHandles),
     reviewModel.init(dbHandles),
     ecommercedashboardModel.init(dbHandles),
+    addressModel.init(dbHandles),
   ]);
 
   app.use("/api", routes);

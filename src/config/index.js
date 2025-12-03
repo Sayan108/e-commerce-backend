@@ -22,6 +22,7 @@ export const config = {
     orders: true,
     reviews: true,
     ecommercedashboard: true,
+    address: true,
   },
 };
 

@@ -56,6 +56,13 @@ async function bulkInsertCategories(categories) {
   return knex("categories").insert(categories);
 }
 
+async function getCategoryById(categoryId) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return CatM.findById(categoryId);
+  }
+  return knex("categories").where({ id: categoryId }).first();
+}
+
 export default {
   init,
   createCategory,
@@ -63,4 +70,5 @@ export default {
   updateCategory,
   deleteCategory,
   bulkInsertCategories,
+  getCategoryById,
 };

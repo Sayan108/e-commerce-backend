@@ -12,7 +12,7 @@ export const createDashBoardBanner = async (req, res) => {
 
 export const getAllDashBoardBanners = async (req, res) => {
   try {
-    const banners = await ecommercedashboardModel.getAllDashBoardBanners();
+    const banners = await ecommercedashboardModel.listDashBoardBanners();
     res.json({ banners });
   } catch (error) {
     res.status(500).json({ error, message: "Failed to fetch banners." });
@@ -65,6 +65,7 @@ export const createDashboardVideo = async (req, res) => {
 export const updateDashboardVideo = async (req, res) => {
   const { id } = req.params;
   const changes = req.body;
+
   try {
     const updatedVideo = await ecommercedashboardModel.updateDashboardVideo(
       id,
