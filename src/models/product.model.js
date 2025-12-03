@@ -1,4 +1,4 @@
-import { config as cfg, dbs } from "../config/index.js";
+import { config as cfg, dbs, sqlTableNames } from "../config/index.js";
 
 let knex;
 let mongoose;
@@ -25,7 +25,7 @@ async function init(dbHandles) {
 
 async function createProduct(data) {
   if (cfg.db.type === dbs.MONGODB) return ProductM.create(data);
-  const [id] = await knex("products")
+  const [id] = await knex(sqlTableNames.PRODUCTS)
     .insert(data)
     .returning("id")
     .catch(async (err) => {
