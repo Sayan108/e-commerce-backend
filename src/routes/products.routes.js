@@ -5,6 +5,7 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 import { requireRole } from "../middleware/roles.middleware.js";
 import { Roles } from "../config/index.js";
 import {
+  bulkInsertProducts,
   createProducts,
   deleteProduct,
   getAllProducts,
@@ -35,6 +36,13 @@ router.delete(
   authMiddleware,
   requireRole(Roles.ADMIN, Roles.SUPERADMIN),
   deleteProduct
+);
+
+router.post(
+  "/bulk-insert",
+  authMiddleware,
+  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  bulkInsertProducts
 );
 
 export { router };

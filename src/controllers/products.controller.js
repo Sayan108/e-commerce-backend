@@ -24,3 +24,13 @@ export const deleteProduct = async (req, res) => {
   await productModel.deleteProduct(req.params.id);
   res.json({ success: true });
 };
+
+export const bulkInsertProducts = async (req, res) => {
+  try {
+    const products = req.body.products;
+    const inserted = await productModel.bulkInsertProducts(products);
+    res.json({ inserted, message: "Products inserted successfully." });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};

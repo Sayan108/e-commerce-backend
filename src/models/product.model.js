@@ -12,8 +12,13 @@ async function init(dbHandles) {
         name: String,
         description: String,
         price: Number,
-        categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
+        categoryId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Category",
+          required: true,
+        },
         stock: Number,
+        imageUrl: String,
       },
       { timestamps: true }
     );
@@ -60,6 +65,13 @@ async function deleteProduct(id) {
   return knex("products").where({ id }).del();
 }
 
+async function bulkInsertProducts(products) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return ProductM.insertMany(products);
+  }
+  return knex("products").insert(products);
+}
+
 export default {
   init,
   createProduct,
@@ -67,4 +79,5 @@ export default {
   getProduct,
   updateProduct,
   deleteProduct,
+  bulkInsertProducts,
 };

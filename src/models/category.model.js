@@ -49,10 +49,18 @@ async function deleteCategory(categoryId) {
   return knex("categories").where({ id: categoryId }).del();
 }
 
+async function bulkInsertCategories(categories) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return CatM.insertMany(categories);
+  }
+  return knex("categories").insert(categories);
+}
+
 export default {
   init,
   createCategory,
   listCategories,
   updateCategory,
   deleteCategory,
+  bulkInsertCategories,
 };

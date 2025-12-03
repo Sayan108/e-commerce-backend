@@ -67,3 +67,31 @@ export const login = async (req, res) => {
       .json({ error, message: Messages.AUTH.ERROR_INVALID_CREDENTIALS });
   }
 };
+
+export const createAdminUser = async (req, res) => {
+  const { name, email, password, role } = req.body;
+  if (!role || (role !== Roles.ADMIN && role !== Roles.SUPERADMIN)) {
+    return res.status(403).json({ error: Messages.AUTH.INVALID_ROLE });
+  }
+  if (!email || !password)
+    return res
+      .status(400)
+      .json({ error: Messages.VALIDATION.REQUIRED_FIELDS_MISSING });
+  try {
+    const existing = await userModel.findByEmail(email);
+    if (existing)
+      return res
+        .status(400)
+        .json({ error: Messages.AUTH.EMAIL_ALREADY_EXISTS });
+    const user = await userModel.createUser({
+      name,
+      email,
+      password,
+      role,
+    });
+    const token = signToken(user);
+    res.json({ user, token, message: Messages.AUTH.REGISTER_SUCCESS });
+  } catch (error) {
+    res.status(500).json({ error, message: Messages.AUTH.REGISTER_FAILURE });
+  }
+};

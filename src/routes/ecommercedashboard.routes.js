@@ -7,9 +7,13 @@ import { requireRole } from "../middleware/roles.middleware.js";
 import { Roles } from "../config/index.js";
 import {
   createDashBoardBanner,
+  createDashboardVideo,
   deleteDashBoardBanner,
+  deleteDashboardVideo,
   getAllDashBoardBanners,
+  getDashboardVideos,
   updateDashBoardBanner,
+  updateDashboardVideo,
 } from "../controllers/ecommercedashboard.controller.js";
 
 router.post(
