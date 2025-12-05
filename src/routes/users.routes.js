@@ -16,4 +16,12 @@ router.get(
 
 router.get("/me", authMiddleware, getOwnDetails);
 
+router.get(
+  "/userdetails/:id",
+  authMiddleware,
+  requireRole(Roles.ADMIN, Roles.SUPERADMIN)
+);
+
+router.put("/");
+
 export { router };

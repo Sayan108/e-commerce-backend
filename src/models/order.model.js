@@ -94,11 +94,69 @@ async function updateOrderDetails(orderId, details) {
   return knex("orders").where({ id: orderId }).first();
 }
 
-async function getOrdersByUserId(userId) {
+async function getOrdersByUserId(
+  userId,
+  {
+    page = 1,
+    limit = 10,
+    sortBy = "createdAt", // "createdAt" | "status"
+    sortOrder = "desc", // "asc" | "desc"
+  } = {}
+) {
+  page = Number(page);
+  limit = Math.min(Number(limit), 100); // safety cap
+  const skip = (page - 1) * limit;
+
+  /* ---------------------- MONGODB ---------------------- */
   if (cfg.db.type === dbs.MONGODB) {
-    return OrderM.find().where({ userId });
+    const filter = { userId };
+
+    const sort = {
+      [sortBy]: sortOrder === "asc" ? 1 : -1,
+    };
+
+    const [data, total] = await Promise.all([
+      OrderM.find(filter).sort(sort).skip(skip).limit(limit).lean(),
+      OrderM.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
-  return knex("orders").where({ userId });
+
+  /* ------------------------ SQL / KNEX ------------------------ */
+
+  const query = knex("orders").where({ userId });
+
+  const countQuery = query.clone().count("* as count").first();
+
+  const dataQuery = query
+    .clone()
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
+    .offset(skip)
+    .select("*");
+
+  const [data, countResult] = await Promise.all([dataQuery, countQuery]);
+
+  const total = Number(countResult.count);
+
+  return {
+    data,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
 
 async function getOrderById(orderId) {

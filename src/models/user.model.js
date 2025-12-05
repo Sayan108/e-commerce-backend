@@ -69,10 +69,71 @@ async function updateUser(id, changes) {
   return knex("users").where({ id }).first();
 }
 
+async function listUsers({
+  page = 1,
+  limit = 10,
+  sortBy = "createdAt", // name | email | createdAt
+  sortOrder = "desc", // asc | desc
+} = {}) {
+  page = Number(page);
+  limit = Math.min(Number(limit), 100); // safety cap
+  const skip = (page - 1) * limit;
+
+  /* ---------------------- MONGODB ---------------------- */
+  if (cfg.db.type === dbs.MONGODB) {
+    const sort = {
+      [sortBy]: sortOrder === "asc" ? 1 : -1,
+    };
+
+    const [data, total] = await Promise.all([
+      UserM.find().sort(sort).skip(skip).limit(limit).lean(),
+      UserM.countDocuments(),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /* ---------------------- SQL / KNEX ---------------------- */
+
+  const query = knex("users");
+
+  const countQuery = query.clone().count("* as count").first();
+
+  const dataQuery = query
+    .clone()
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
+    .offset(skip)
+    .select("*");
+
+  const [data, countResult] = await Promise.all([dataQuery, countQuery]);
+
+  const total = Number(countResult.count);
+
+  return {
+    data,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
 export default {
   init,
   createUser,
   findByEmail,
   findById,
   updateUser,
+  listUsers,
 };

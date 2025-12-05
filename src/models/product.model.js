@@ -43,9 +43,110 @@ async function createProduct(data) {
   return knex("products").where({ id }).first();
 }
 
-async function listProducts() {
-  if (cfg.db.type === dbs.MONGODB) return ProductM.find().lean();
-  return knex("products").select("*");
+async function listProducts({
+  page = 1,
+  limit = 10,
+  search = "",
+  categoryId,
+  minPrice,
+  maxPrice,
+  inStock,
+  sortBy = "createdAt", // price | name | createdAt
+  sortOrder = "desc", // asc | desc
+}) {
+  page = Number(page);
+  limit = Math.min(Number(limit), 100); // safety cap
+  const skip = (page - 1) * limit;
+
+  /* ------------------------ MONGODB ------------------------ */
+  if (cfg.db.type === dbs.MONGODB) {
+    const filter = {};
+
+    if (search) {
+      filter.name = { $regex: search, $options: "i" };
+    }
+
+    if (categoryId) {
+      filter.categoryId = categoryId;
+    }
+
+    if (inStock !== undefined) {
+      filter.stock = inStock === "true" ? { $gt: 0 } : { $lte: 0 };
+    }
+
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    const sort = {
+      [sortBy]: sortOrder === "asc" ? 1 : -1,
+    };
+
+    const [data, total] = await Promise.all([
+      ProductM.find(filter).sort(sort).skip(skip).limit(limit).lean(),
+      ProductM.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /* ------------------------ SQL / KNEX ------------------------ */
+
+  const query = knex("products");
+
+  if (search) {
+    query.whereILike("name", `%${search}%`);
+  }
+
+  if (categoryId) {
+    query.where("categoryId", categoryId);
+  }
+
+  if (inStock !== undefined) {
+    if (inStock === "true") query.where("stock", ">", 0);
+    else query.where("stock", "<=", 0);
+  }
+
+  if (minPrice) {
+    query.where("price", ">=", Number(minPrice));
+  }
+
+  if (maxPrice) {
+    query.where("price", "<=", Number(maxPrice));
+  }
+
+  const countQuery = query.clone().count("* as count").first();
+
+  const dataQuery = query
+    .clone()
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
+    .offset(skip)
+    .select("*");
+
+  const [data, countResult] = await Promise.all([dataQuery, countQuery]);
+
+  const total = Number(countResult.count);
+
+  return {
+    data,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
 
 async function updateProduct(id, changes) {
@@ -117,6 +218,7 @@ export default {
   listProducts,
   updateProduct,
   deleteProduct,
+
   getProductById,
   bulkInsertProducts,
   validateProducts,

@@ -1,3 +1,4 @@
+import { Messages } from "../config/messages.js";
 import productModel from "../models/product.model.js";
 
 export const createProducts = async (req, res) => {
@@ -55,6 +56,39 @@ export const bulkInsertProducts = async (req, res) => {
 
     const inserted = await productModel.bulkInsertProducts(products);
     res.json({ inserted, message: "Products inserted successfully." });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
+
+export const getProductsByCategoriesWithFilter = async (req, res) => {
+  try {
+    const {
+      page,
+      limit,
+      search,
+      categoryId,
+      minPrice,
+      maxPrice,
+      inStock,
+      sortBy,
+      sortOrder,
+    } = req.body;
+    const filteredListandCount = await productModel.listProducts(
+      page,
+      limit,
+      search,
+      categoryId,
+      minPrice,
+      maxPrice,
+      inStock,
+      sortBy,
+      sortOrder
+    );
+    res.status(2000).jon({
+      data: filteredListandCount,
+      message: Messages.PRODUCT.PRODUCTS_FETCH_SUCCESS,
+    });
   } catch (error) {
     res.status(500).json({ error });
   }

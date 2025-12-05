@@ -36,6 +36,7 @@ export const createOrder = async (req, res) => {
 export const getOrdersByUser = async (req, res) => {
   try {
     const { id } = req.user;
+    const { limit, page, sortBy, sortOrder } = req.body;
     if (!id) {
       return res.status(400).json({ error: "User ID is required." });
     }
@@ -43,7 +44,12 @@ export const getOrdersByUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
-    const orders = await orderModel.getOrdersByUserId(id);
+    const orders = await orderModel.getOrdersByUserId(id, {
+      limit,
+      page,
+      sortBy,
+      sortOrder,
+    });
     res.json({ orders, message: Messages.ORDER.ORDERS_FETCH_SUCCESS });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch orders." });
