@@ -50,11 +50,7 @@ export const updateUser = async (req, res) => {
 
 export const updateSelf = async (req, res) => {
   try {
-    if (req.user.id !== req.body.id) {
-      res.status(400).json({ message: "Wrong id provided" });
-    }
-
-    const updateSelf = await userModel.updateUser(req.body);
+    const updateSelf = await userModel.updateUser(req.user.id, req.body);
     res
       .status(200)
       .json({ updateSelf, message: Messages.USER.PROFILE_UPDATE_SUCCESS });

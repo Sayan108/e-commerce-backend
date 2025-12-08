@@ -51,39 +51,45 @@ async function listProducts({
   minPrice,
   maxPrice,
   inStock,
-  sortBy = "createdAt", // price | name | createdAt
-  sortOrder = "desc", // asc | desc
+  sortBy = "createdAt", // default sort by createdAt
+  sortOrder = "desc", // default sort descending
 }) {
   page = Number(page);
-  limit = Math.min(Number(limit), 100); // safety cap
+  limit = Math.min(Number(limit), 100); // safety cap for limit
   const skip = (page - 1) * limit;
 
   /* ------------------------ MONGODB ------------------------ */
   if (cfg.db.type === dbs.MONGODB) {
     const filter = {};
 
+    // Handle search filter if provided
     if (search) {
-      filter.name = { $regex: search, $options: "i" };
+      filter.name = { $regex: search, $options: "i" }; // case insensitive search
     }
 
+    // Handle category filter if provided
     if (categoryId) {
       filter.categoryId = categoryId;
     }
 
+    // Handle stock filter if provided
     if (inStock !== undefined) {
-      filter.stock = inStock === "true" ? { $gt: 0 } : { $lte: 0 };
+      filter.stock = inStock === "true" ? { $gt: 0 } : { $lte: 0 }; // check stock
     }
 
+    // Handle price range filters if provided
     if (minPrice || maxPrice) {
       filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
+      if (minPrice) filter.price.$gte = Number(minPrice); // minimum price
+      if (maxPrice) filter.price.$lte = Number(maxPrice); // maximum price
     }
 
+    // Sorting
     const sort = {
-      [sortBy]: sortOrder === "asc" ? 1 : -1,
+      [sortBy]: sortOrder === "asc" ? 1 : -1, // ascending or descending
     };
 
+    // Fetch data and total count in parallel
     const [data, total] = await Promise.all([
       ProductM.find(filter).sort(sort).skip(skip).limit(limit).lean(),
       ProductM.countDocuments(filter),
@@ -95,7 +101,7 @@ async function listProducts({
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / limit), // calculate total pages
       },
     };
   }
@@ -104,29 +110,37 @@ async function listProducts({
 
   const query = knex("products");
 
+  // Handle search filter if provided
   if (search) {
     query.whereILike("name", `%${search}%`);
   }
 
+  // Handle category filter if provided
   if (categoryId) {
     query.where("categoryId", categoryId);
   }
 
+  // Handle stock filter if provided
   if (inStock !== undefined) {
-    if (inStock === "true") query.where("stock", ">", 0);
-    else query.where("stock", "<=", 0);
+    if (inStock === "true") {
+      query.where("stock", ">", 0); // only in-stock items
+    } else {
+      query.where("stock", "<=", 0); // out-of-stock items
+    }
   }
 
+  // Handle price range filters if provided
   if (minPrice) {
-    query.where("price", ">=", Number(minPrice));
+    query.where("price", ">=", Number(minPrice)); // minimum price
   }
-
   if (maxPrice) {
-    query.where("price", "<=", Number(maxPrice));
+    query.where("price", "<=", Number(maxPrice)); // maximum price
   }
 
+  // Count the total number of products (for pagination)
   const countQuery = query.clone().count("* as count").first();
 
+  // Fetch the product data (with pagination)
   const dataQuery = query
     .clone()
     .orderBy(sortBy, sortOrder)
@@ -134,8 +148,10 @@ async function listProducts({
     .offset(skip)
     .select("*");
 
+  // Execute both queries in parallel
   const [data, countResult] = await Promise.all([dataQuery, countQuery]);
 
+  // Total count from the count query
   const total = Number(countResult.count);
 
   return {
@@ -144,7 +160,7 @@ async function listProducts({
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit), // calculate total pages
     },
   };
 }
