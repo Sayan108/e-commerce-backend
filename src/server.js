@@ -13,9 +13,11 @@ import orderModel from "./models/order.model.js";
 import reviewModel from "./models/review.model.js";
 import ecommercedashboardModel from "./models/ecommercedashboard.model.js";
 import addressModel from "./models/address.model.js";
+import cors from "cors";
 
 async function main() {
   const app = express();
+  app.use(cors());
   app.use(bodyParser.json());
 
   let dbHandles = {};
