@@ -12,7 +12,7 @@ export const createCategory = async (req, res) => {
   }
 };
 
-export const getAllCategories = async (res) => {
+export const getAllCategories = async (req, res) => {
   try {
     const list = await categoryModel.listCategories();
     res.json({ list, message: Messages.CATEGORY.CATEGORIES_FETCH_SUCCESS });

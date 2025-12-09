@@ -63,7 +63,28 @@ export const bulkInsertProducts = async (req, res) => {
 
 export const getProductsByCategoriesWithFilter = async (req, res) => {
   try {
-    const {
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      categoryId = null,
+      minPrice = null,
+      maxPrice = null,
+      inStock = null,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    // ✅ TYPE CASTING (VERY IMPORTANT)
+    page = Number(page);
+    limit = Number(limit);
+
+    if (minPrice !== null) minPrice = Number(minPrice);
+    if (maxPrice !== null) maxPrice = Number(maxPrice);
+
+    if (inStock !== null) inStock = inStock === "true";
+
+    console.log("Filters:", {
       page,
       limit,
       search,
@@ -73,8 +94,9 @@ export const getProductsByCategoriesWithFilter = async (req, res) => {
       inStock,
       sortBy,
       sortOrder,
-    } = req.body;
-    const filteredListandCount = await productModel.listProducts(
+    });
+
+    const filteredListandCount = await productModel.listProducts({
       page,
       limit,
       search,
@@ -83,13 +105,15 @@ export const getProductsByCategoriesWithFilter = async (req, res) => {
       maxPrice,
       inStock,
       sortBy,
-      sortOrder
-    );
-    res.status(2000).jon({
+      sortOrder,
+    });
+
+    res.status(200).json({
       data: filteredListandCount,
       message: Messages.PRODUCT.PRODUCTS_FETCH_SUCCESS,
     });
   } catch (error) {
-    res.status(500).json({ error });
+    console.error("Product Fetch Error:", error);
+    res.status(500).json({ error: error.message });
   }
 };

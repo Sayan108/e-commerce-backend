@@ -12,6 +12,7 @@ async function init(dbHandles) {
         name: String,
         description: String,
         price: Number,
+        originalPrice: Number,
         categoryId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Category",
@@ -47,49 +48,56 @@ async function listProducts({
   page = 1,
   limit = 10,
   search = "",
-  categoryId,
-  minPrice,
-  maxPrice,
-  inStock,
-  sortBy = "createdAt", // default sort by createdAt
-  sortOrder = "desc", // default sort descending
+  categoryId = null,
+  minPrice = null,
+  maxPrice = null,
+  inStock = null,
+  sortBy = "createdAt",
+  sortOrder = "desc",
 }) {
   page = Number(page);
-  limit = Math.min(Number(limit), 100); // safety cap for limit
+  limit = Math.min(Number(limit), 100);
   const skip = (page - 1) * limit;
 
   /* ------------------------ MONGODB ------------------------ */
   if (cfg.db.type === dbs.MONGODB) {
     const filter = {};
 
-    // Handle search filter if provided
-    if (search) {
-      filter.name = { $regex: search, $options: "i" }; // case insensitive search
+    // ✅ SEARCH
+    if (search && search.trim() !== "") {
+      filter.name = { $regex: search, $options: "i" };
     }
 
-    // Handle category filter if provided
-    if (categoryId) {
-      filter.categoryId = categoryId;
+    // ✅ CATEGORY
+    if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
+      filter.categoryId = new mongoose.Types.ObjectId(categoryId);
     }
 
-    // Handle stock filter if provided
-    if (inStock !== undefined) {
-      filter.stock = inStock === "true" ? { $gt: 0 } : { $lte: 0 }; // check stock
+    // ✅ STOCK (ONLY apply if explicitly provided)
+    if (inStock !== null) {
+      filter.stock = inStock ? { $gt: 0 } : { $lte: 0 };
     }
 
-    // Handle price range filters if provided
-    if (minPrice || maxPrice) {
+    // ✅ PRICE RANGE (ONLY if provided)
+    if (minPrice !== null || maxPrice !== null) {
       filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice); // minimum price
-      if (maxPrice) filter.price.$lte = Number(maxPrice); // maximum price
+
+      if (minPrice !== null) {
+        filter.price.$gte = Number(minPrice);
+      }
+
+      if (maxPrice !== null) {
+        filter.price.$lte = Number(maxPrice);
+      }
     }
 
-    // Sorting
+    // ✅ SORT
     const sort = {
-      [sortBy]: sortOrder === "asc" ? 1 : -1, // ascending or descending
+      [sortBy]: sortOrder === "asc" ? 1 : -1,
     };
 
-    // Fetch data and total count in parallel
+    console.log(filter, sort, skip);
+
     const [data, total] = await Promise.all([
       ProductM.find(filter).sort(sort).skip(skip).limit(limit).lean(),
       ProductM.countDocuments(filter),
@@ -101,7 +109,7 @@ async function listProducts({
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit), // calculate total pages
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
@@ -110,37 +118,28 @@ async function listProducts({
 
   const query = knex("products");
 
-  // Handle search filter if provided
-  if (search) {
+  if (search && search.trim() !== "") {
     query.whereILike("name", `%${search}%`);
   }
 
-  // Handle category filter if provided
   if (categoryId) {
     query.where("categoryId", categoryId);
   }
 
-  // Handle stock filter if provided
-  if (inStock !== undefined) {
-    if (inStock === "true") {
-      query.where("stock", ">", 0); // only in-stock items
-    } else {
-      query.where("stock", "<=", 0); // out-of-stock items
-    }
+  if (inStock !== null) {
+    inStock ? query.where("stock", ">", 0) : query.where("stock", "<=", 0);
   }
 
-  // Handle price range filters if provided
-  if (minPrice) {
-    query.where("price", ">=", Number(minPrice)); // minimum price
-  }
-  if (maxPrice) {
-    query.where("price", "<=", Number(maxPrice)); // maximum price
+  if (minPrice !== null) {
+    query.where("price", ">=", Number(minPrice));
   }
 
-  // Count the total number of products (for pagination)
+  if (maxPrice !== null) {
+    query.where("price", "<=", Number(maxPrice));
+  }
+
   const countQuery = query.clone().count("* as count").first();
 
-  // Fetch the product data (with pagination)
   const dataQuery = query
     .clone()
     .orderBy(sortBy, sortOrder)
@@ -148,10 +147,8 @@ async function listProducts({
     .offset(skip)
     .select("*");
 
-  // Execute both queries in parallel
   const [data, countResult] = await Promise.all([dataQuery, countQuery]);
 
-  // Total count from the count query
   const total = Number(countResult.count);
 
   return {
@@ -160,7 +157,7 @@ async function listProducts({
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit), // calculate total pages
+      totalPages: Math.ceil(total / limit),
     },
   };
 }

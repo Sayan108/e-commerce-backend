@@ -7,7 +7,13 @@ let CatM;
 async function init(dbHandles) {
   if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
-    const s = new mongoose.Schema({ name: String }, { timestamps: true });
+    const s = new mongoose.Schema(
+      {
+        name: { type: String, requierd: true, unique: true },
+        imageurl: { type: String, requierd: true },
+      },
+      { timestamps: true }
+    );
     CatM = mongoose.models.Category || mongoose.model("Category", s);
   } else {
     knex = dbHandles.knex;

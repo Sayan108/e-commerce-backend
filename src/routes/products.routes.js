@@ -10,6 +10,7 @@ import {
   deleteProduct,
   getAllProducts,
   getProductById,
+  getProductsByCategoriesWithFilter,
   updateProduct,
 } from "../controllers/products.controller.js";
 
@@ -22,7 +23,7 @@ router.post(
 
 router.get("/:id", getProductById);
 
-router.get("/", getAllProducts);
+router.get("/", getProductsByCategoriesWithFilter);
 
 router.put(
   "/:id",
