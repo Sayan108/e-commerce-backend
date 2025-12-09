@@ -65,7 +65,7 @@ setInterval(async () => {
   } catch (err) {
     console.error("❌ Keep-alive ping failed:", err.message);
   }
-}, 2 * 60 * 100);
+}, 2 * 60 * 1000);
 try {
   await main();
 } catch (error) {
