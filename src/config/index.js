@@ -48,3 +48,6 @@ export const sqlTableNames = {
   ORDER_ITEMS: "order_items",
   REVIEWS: "reviews",
 };
+
+export const shouldPingBackend = true;
+export const pingUrl = "https://e-commerce-backend-8mse.onrender.com/";

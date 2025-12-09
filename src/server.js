@@ -1,7 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 
-import { config as cfg } from "./config/index.js";
+import { config as cfg, pingUrl } from "./config/index.js";
 import { router as routes } from "./routes/index.js";
 import createKnex from "./db/knex.client.js";
 import connectMongoose from "./db/mongoose.client.js";
@@ -14,6 +14,7 @@ import reviewModel from "./models/review.model.js";
 import ecommercedashboardModel from "./models/ecommercedashboard.model.js";
 import addressModel from "./models/address.model.js";
 import cors from "cors";
+import axios from "axios";
 
 async function main() {
   const app = express();
@@ -57,7 +58,14 @@ async function main() {
     console.log(`Server running on port ${cfg.port} with DB=${cfg.db.type}`);
   });
 }
-
+setInterval(async () => {
+  try {
+    await axios.get(pingUrl);
+    console.log("✅ Keep-alive ping sent:", new Date().toISOString());
+  } catch (err) {
+    console.error("❌ Keep-alive ping failed:", err.message);
+  }
+}, 2 * 60 * 100);
 try {
   await main();
 } catch (error) {
