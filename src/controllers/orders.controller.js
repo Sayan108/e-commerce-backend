@@ -3,29 +3,47 @@ import { Messages } from "../config/messages.js";
 import orderModel from "../models/order.model.js";
 import productModel from "../models/product.model.js";
 import userModel from "../models/user.model.js";
+import addressModel from "../models/address.model.js";
 
 export const createOrder = async (req, res) => {
   try {
-    const payload = {
-      userId: req.user.id,
-      items: req.body.items || [],
-      total: req.body.total || 0,
-      status: orderStatuses.PLACED,
-    };
-    const user = await userModel.findById(payload.userId);
+    const user = await userModel.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
-    if (payload.items.length === 0) {
+    const shippingAddress = await addressModel.getAddressById(
+      req.body.shippingAddressId
+    );
+    if (!shippingAddress) {
+      return res.status(404).json({ error: "Shipping address not found." });
+    }
+    const billingAddress = await addressModel.getAddressById(
+      req.body.billingAddressId
+    );
+
+    if (!billingAddress) {
+      return res.status(404).json({ error: "Billing address not found." });
+    }
+
+    if (req.body.items.length === 0 || req.body.items[0].quantity === 0) {
       return res
         .status(400)
         .json({ error: "Order must contain at least one item." });
     }
 
-    const product = await productModel.validateProducts(payload.items);
+    const product = await productModel.validateProducts(req.body.items);
     if (!product.valid) {
       return res.status(400).json({ error: `Invalid product in order .` });
     }
+    const payload = {
+      userId: req.user.id,
+      items: req.body.items || [],
+      total: req.body.total || 0,
+      shippingAddressId: req.body.shippingAddressId,
+      billingAddressId: req.body.billingAddressID,
+
+      status: orderStatuses.PLACED,
+    };
     const order = await orderModel.placeOrder(payload);
     res.json({ order, message: Messages.ORDER.ORDER_PLACED });
   } catch (error) {

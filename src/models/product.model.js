@@ -214,7 +214,7 @@ async function getProductById(productId) {
 
 async function validateProducts(items) {
   if (cfg.db.type === dbs.MONGODB) {
-    const productIds = items.map((item) => item.productId);
+    const productIds = items.map((item) => item.id);
     const products = await ProductM.find({ _id: { $in: productIds } }).lean();
 
     return productIds.length === products.length;
