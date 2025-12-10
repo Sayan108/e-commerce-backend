@@ -4,6 +4,7 @@ import orderModel from "../models/order.model.js";
 import productModel from "../models/product.model.js";
 import userModel from "../models/user.model.js";
 import addressModel from "../models/address.model.js";
+import { getAddressString } from "../uttils/index..js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -41,6 +42,8 @@ export const createOrder = async (req, res) => {
       total: req.body.total || 0,
       shippingAddressId: req.body.shippingAddressId,
       billingAddressId: req.body.billingAddressID,
+      shippingAddress: getAddressString(shippingAddress),
+      billingAddress: getAddressString(billingAddress),
 
       status: orderStatuses.PLACED,
     };
@@ -118,9 +121,7 @@ export const updateOrderDetails = async (req, res) => {
     if (!id) {
       return res.status(400).json({ error: "Order ID is required." });
     }
-    if (!Object.values(orderStatuses).includes(status)) {
-      return res.status(400).json({ error: "Invalid order status." });
-    }
+
     const existingOrder = await orderModel.getOrderById(id);
     if (!existingOrder) {
       return res.status(404).json({ error: "Order not found." });
