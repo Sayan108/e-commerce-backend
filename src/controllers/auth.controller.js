@@ -28,7 +28,11 @@ export const register = async (req, res) => {
       role: Roles.CUSTOMER,
     });
     const token = signToken(user);
-    res.json({ user, token, message: Messages.AUTH.REGISTER_SUCCESS });
+    res.json({
+      user: { name, email, phone, role, _id: user._id },
+      token,
+      message: Messages.AUTH.REGISTER_SUCCESS,
+    });
   } catch (error) {
     res.status(500).json({ error, message: Messages.AUTH.REGISTER_FAILURE });
   }
@@ -61,7 +65,17 @@ export const login = async (req, res) => {
     const token = signToken(user);
 
     await userModel.updateUser(user._id, { token: user.token });
-    res.json({ user, token, message: Messages.AUTH.LOGIN_SUCCESS });
+    res.json({
+      user: {
+        name: user.name,
+        email,
+        phone: user.phone,
+        role: user.role,
+        _id: user._id,
+      },
+      token,
+      message: Messages.AUTH.LOGIN_SUCCESS,
+    });
   } catch (error) {
     res
       .status(500)

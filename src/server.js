@@ -15,6 +15,7 @@ import ecommercedashboardModel from "./models/ecommercedashboard.model.js";
 import addressModel from "./models/address.model.js";
 import cors from "cors";
 import axios from "axios";
+import cartModel from "./models/cart.model.js";
 
 async function main() {
   const app = express();
@@ -40,6 +41,7 @@ async function main() {
     reviewModel.init(dbHandles),
     ecommercedashboardModel.init(dbHandles),
     addressModel.init(dbHandles),
+    cartModel.init(dbHandles),
   ]);
 
   app.use("/api", routes);

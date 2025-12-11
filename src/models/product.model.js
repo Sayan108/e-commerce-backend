@@ -19,7 +19,9 @@ async function init(dbHandles) {
           required: true,
         },
         stock: Number,
-        imageUrl: String,
+        imageurl: String,
+        rating: Number,
+        reviewCount: Number,
       },
       { timestamps: true }
     );

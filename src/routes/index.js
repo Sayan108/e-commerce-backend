@@ -9,6 +9,7 @@ import { router as orders } from "./orders.routes.js";
 import { router as reviews } from "./reviews.routes.js";
 import { router as ecommercedashboard } from "./ecommercedashboard.routes.js";
 import { router as address } from "./address.routes.js";
+import { router as cart } from "./cart.routes.js";
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ if (cfg.routes.reviews) router.use("/reviews", reviews);
 if (cfg.routes.ecommercedashboard)
   router.use("/ecommercedashboard", ecommercedashboard);
 if (cfg.routes.address) router.use("/address", address);
+if (cfg.routes.cart) router.use("/cart", cart);
 
 export { router };

@@ -13,9 +13,10 @@ async function init(dbHandles) {
     UserSchema = new mongoose.Schema(
       {
         name: String,
-        email: { type: String, unique: true },
+        email: { type: String, unique: true, required: true },
         password: String,
-        role: { type: String, default: Roles.CUSTOMER },
+        role: { type: String, default: Roles.CUSTOMER, required: true },
+        phone: { type: String },
         token: [{ type: String }],
       },
       { timestamps: true }
@@ -26,13 +27,13 @@ async function init(dbHandles) {
   }
 }
 
-async function createUser({ name, email, password, role = Roles.CUSTOMER }) {
+async function createUser({ email, password, role = Roles.CUSTOMER }) {
   const hash = await bcrypt.hash(password, 10);
   if (cfg.db.type === dbs.MONGODB) {
-    return UserM.create({ name, email, password: hash, role });
+    return UserM.create({ email, password: hash, role });
   } else {
     const [id] = await knex("users")
-      .insert({ name, email, password: hash, role })
+      .insert({ email, password: hash, role })
       .returning("id")
       .catch(async (err) => {
         // sqlite/pg differences

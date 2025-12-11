@@ -4,6 +4,12 @@ let knex;
 let mongoose;
 let AddressM;
 
+export const AddressType = {
+  HOME: "home",
+  OFFICE: "office",
+  OTHER: "other",
+};
+
 async function init(dbHandles) {
   if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
@@ -14,12 +20,19 @@ async function init(dbHandles) {
           ref: "User",
           required: true,
         },
-        street: { type: String, required: true },
+        addressType: {
+          type: String,
+          enum: Object.values(AddressType),
+          default: AddressType.HOME,
+          required: true,
+        },
+        lineOne: { type: String, required: true },
         city: { type: String, required: true },
         state: { type: String, required: true },
         zip: { type: String, required: true },
         country: { type: String, required: true },
       },
+
       { timestamps: true }
     );
     AddressM = mongoose.models.Address || mongoose.model("Address", s);

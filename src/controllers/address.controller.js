@@ -3,8 +3,20 @@ import addressModel from "../models/address.model.js";
 
 export const createAddress = async (req, res) => {
   try {
-    const a = await addressModel.createAddress(req.body);
-    res.json({ a, message: Messages.ADDRESS.ADDRESS_CREATED });
+    const address = await addressModel.createAddress(req.body);
+
+    res.json({
+      address: {
+        userId: address.userId,
+        addressType: address.addressType,
+        lineOne: address.lineOne,
+        city: address.city,
+        state: address.state,
+        zip: address.zip,
+        country: address.country,
+      },
+      message: Messages.ADDRESS.ADDRESS_CREATED,
+    });
   } catch (error) {
     res
       .status(500)
@@ -52,7 +64,10 @@ export const updateAddress = async (req, res) => {
       return res.status(404).json({ error: "Address not found." });
     }
     const updated = await addressModel.updateAddress(id, req.body);
-    res.json({ updated, message: Messages.ADDRESS.ADDRESS_UPDATED });
+    res.json({
+      updated: { ...req.body },
+      message: Messages.ADDRESS.ADDRESS_UPDATED,
+    });
   } catch (error) {
     res
       .status(500)

@@ -17,6 +17,7 @@ export const config = {
     reviews: true,
     ecommercedashboard: true,
     address: true,
+    cart: true,
   },
 };
 
