@@ -84,18 +84,6 @@ export const getProductsByCategoriesWithFilter = async (req, res) => {
 
     if (inStock !== null) inStock = inStock === "true";
 
-    console.log("Filters:", {
-      page,
-      limit,
-      search,
-      categoryId,
-      minPrice,
-      maxPrice,
-      inStock,
-      sortBy,
-      sortOrder,
-    });
-
     const filteredListandCount = await productModel.listProducts({
       page,
       limit,

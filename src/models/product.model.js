@@ -98,8 +98,6 @@ async function listProducts({
       [sortBy]: sortOrder === "asc" ? 1 : -1,
     };
 
-    console.log(filter, sort, skip);
-
     const [data, total] = await Promise.all([
       ProductM.find(filter).sort(sort).skip(skip).limit(limit).lean(),
       ProductM.countDocuments(filter),
