@@ -5,6 +5,7 @@ import productModel from "../models/product.model.js";
 import userModel from "../models/user.model.js";
 import addressModel from "../models/address.model.js";
 import { getAddressString } from "../uttils/index..js";
+import cartModel from "../models/cart.model.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -36,9 +37,12 @@ export const createOrder = async (req, res) => {
     if (!product.valid) {
       return res.status(400).json({ error: `Invalid product in order .` });
     }
+
+    const cart = await cartModel.getCartByUserId(req.user.id);
+
     const payload = {
       userId: req.user.id,
-      items: req.body.items || [],
+      items: cart || [],
       total: req.body.total || 0,
       shippingAddressId: req.body.shippingAddressId,
       billingAddressId: req.body.billingAddressID,
