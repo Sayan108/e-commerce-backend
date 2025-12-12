@@ -18,6 +18,7 @@ async function init(dbHandles) {
         role: { type: String, default: Roles.CUSTOMER, required: true },
         phone: { type: String },
         token: [{ type: String }],
+        cartItemCount: { type: Number, default: 0 },
       },
       { timestamps: true }
     );

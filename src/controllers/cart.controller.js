@@ -1,11 +1,16 @@
 import cartModel from "../models/cart.model.js";
 import { Messages } from "../config/messages.js";
+import userModel from "../models/user.model.js";
 
 /* ===========================
    ✅ ADD TO CART
 =========================== */
 export const addToCart = async (req, res) => {
   try {
+    const user = await userModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found " });
+    }
     const data = {
       userId: req.user.id,
       productId: req.body.productId,
@@ -15,6 +20,10 @@ export const addToCart = async (req, res) => {
     };
 
     const cartItem = await cartModel.addToCart(data);
+
+    await userModel.updateUser(req.user.id, {
+      cartItemCount: user.cartItemCount + 1,
+    });
 
     res.json({
       cartItem,
@@ -75,11 +84,18 @@ export const updateCart = async (req, res) => {
 export const deleteCartItem = async (req, res) => {
   try {
     const { id } = req.params;
+    const user = await userModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found " });
+    }
 
     await cartModel.deleteCartItem(id);
 
     res.json({
       message: Messages.CART.DELETED,
+    });
+    await userModel.updateUser(req.user.id, {
+      cartItemCount: user.cartItemCount + 1,
     });
   } catch (error) {
     res.status(500).json({

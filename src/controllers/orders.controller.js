@@ -9,52 +9,81 @@ import cartModel from "../models/cart.model.js";
 
 export const createOrder = async (req, res) => {
   try {
-    const user = await userModel.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
-    }
+    const userId = req.user.id;
+
+    const user = await userModel.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    // ------------------ FETCH ADDRESSES ------------------
     const shippingAddress = await addressModel.getAddressById(
       req.body.shippingAddressId
     );
-    if (!shippingAddress) {
+    if (!shippingAddress)
       return res.status(404).json({ error: "Shipping address not found." });
-    }
+
     const billingAddress = await addressModel.getAddressById(
       req.body.billingAddressId
     );
-
-    if (!billingAddress) {
+    if (!billingAddress)
       return res.status(404).json({ error: "Billing address not found." });
-    }
 
-    if (req.body.items.length === 0 || req.body.items[0].quantity === 0) {
+    // ------------------ ITEMS SOURCE ------------------
+    // Option A: From request body (direct checkout)
+    const bodyItems = Array.isArray(req.body.items) ? req.body.items : [];
+
+    // Option B: From user cart (full-cart checkout)
+    const cartItems = await cartModel.getCartByUserId(userId);
+
+    const itemsToUse =
+      bodyItems.length > 0 ? bodyItems : cartItems.length > 0 ? cartItems : [];
+
+    if (itemsToUse.length === 0) {
       return res
         .status(400)
         .json({ error: "Order must contain at least one item." });
     }
 
-    const product = await productModel.validateProducts(req.body.items);
-    if (!product.valid) {
-      return res.status(400).json({ error: `Invalid product in order .` });
+    // ------------------ VALIDATE ITEMS ------------------
+    const validation = await productModel.validateProducts(itemsToUse);
+    if (!validation.valid) {
+      return res.status(400).json({ error: "Invalid product in order." });
     }
 
-    const cart = await cartModel.getCartByUserId(req.user.id);
+    // ------------------ CALCULATE TOTAL ------------------
+    const cartTotal = itemsToUse.reduce(
+      (total, item) => total + item.quantity * item.price,
+      0
+    );
 
+    // ------------------ PREPARE ORDER PAYLOAD ------------------
     const payload = {
-      userId: req.user.id,
-      items: cart || [],
-      total: req.body.total || 0,
+      userId,
+      items: itemsToUse,
+      total: cartTotal,
       shippingAddressId: req.body.shippingAddressId,
-      billingAddressId: req.body.billingAddressID,
-      shippingAddress: getAddressString(shippingAddress),
-      billingAddress: getAddressString(billingAddress),
+      billingAddressId: req.body.billingAddressId,
+
+      shippingaddress: getAddressString(shippingAddress),
+      billingaddress: getAddressString(billingAddress),
 
       status: orderStatuses.PLACED,
     };
+
+    // ------------------ CREATE ORDER ------------------
     const order = await orderModel.placeOrder(payload);
-    res.json({ order, message: Messages.ORDER.ORDER_PLACED });
+
+    // OPTIONAL: Clear cart after full-cart checkout
+    if (bodyItems.length === 0) {
+      await cartModel.clearCart(userId);
+    }
+
+    return res.json({
+      order,
+      message: Messages.ORDER.ORDER_PLACED,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Order creation failed." });
+    console.error("Order creation failed:", error);
+    return res.status(500).json({ error: "Order creation failed." });
   }
 };
 

@@ -87,7 +87,7 @@ async function addToCart(data) {
   ===================== */
 async function getCartByUserId(userId) {
   if (cfg.db.type === dbs.MONGODB) {
-    return await CartM.find({ userId }).populate("productId");
+    return await CartM.find({ userId }).lean();
   }
 
   return knex("cart").where({ userId }).orderBy("createdAt", "desc");
@@ -133,4 +133,5 @@ export default {
   deleteCartItem,
   updateCartItem,
   getCartByUserId,
+  clearCart,
 };

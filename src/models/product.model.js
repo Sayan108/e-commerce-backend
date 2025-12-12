@@ -213,16 +213,29 @@ async function getProductById(productId) {
 }
 
 async function validateProducts(items) {
-  if (cfg.db.type === dbs.MONGODB) {
-    const productIds = items.map((item) => item.id);
-    const products = await ProductM.find({ _id: { $in: productIds } }).lean();
+  try {
+    // Extract productIds correctly
+    const productIds = items.map((item) => item.productId);
 
-    return productIds.length === products.length;
+    if (!productIds.length) return { valid: false };
+
+    // ------------------ MONGODB ------------------
+    if (cfg.db.type === dbs.MONGODB) {
+      const products = await ProductM.find({
+        _id: { $in: productIds },
+      }).lean();
+
+      return { valid: products.length === productIds.length };
+    }
+
+    // ------------------ KNEX / SQL ------------------
+    const products = await knex("products").whereIn("id", productIds);
+
+    return { valid: products.length === productIds.length };
+  } catch (err) {
+    console.error("validateProducts error:", err);
+    return { valid: false };
   }
-  const productIds = items.map((item) => item.productId);
-  const products = await knex("products").whereIn("id", productIds);
-
-  return productIds.length === products.length;
 }
 
 export default {

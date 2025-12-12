@@ -78,7 +78,7 @@ async function deleteAddress(addressId) {
 
 async function getAddressById(addressId) {
   if (cfg.db.type === dbs.MONGODB) {
-    return AddressM.findById(addressId);
+    return AddressM.findById(addressId).lean();
   }
   return knex("addresses").where({ id: addressId }).first();
 }
