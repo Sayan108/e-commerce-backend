@@ -1,3 +1,5 @@
+import { Messages } from "../config/messages.js";
+
 export function requireRole(...allowed) {
   return (req, res, next) => {
     if (!req.user)
