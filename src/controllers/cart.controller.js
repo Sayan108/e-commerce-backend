@@ -11,6 +11,11 @@ export const addToCart = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found " });
     }
+    if (req.body.quantity <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Cart count can never be negative " });
+    }
     const data = {
       userId: req.user.id,
       productId: req.body.productId,
@@ -63,6 +68,11 @@ export const updateCart = async (req, res) => {
   try {
     const { id } = req.params;
     const { quantity } = req.body;
+    if (quantity <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Cart count can never be negative " });
+    }
 
     const updated = await cartModel.updateCartItem(id, quantity);
 
