@@ -1,3 +1,3 @@
 export const getAddressString = (address) => {
-  return `${address.street}, ${address.city}, ${address.state} ${address.zip}, ${address.country}`;
+  return `${address.lineOne}, ${address.city}, ${address.state} ${address.zip}, ${address.country}`;
 };
