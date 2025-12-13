@@ -29,10 +29,10 @@ async function init(dbHandles) {
   }
 }
 
-async function createUser({ email, password, role = Roles.CUSTOMER }) {
+async function createUser({ email, password, role = Roles.CUSTOMER, token }) {
   const hash = await bcrypt.hash(password, 10);
   if (cfg.db.type === dbs.MONGODB) {
-    return UserM.create({ email, password: hash, role });
+    return UserM.create({ email, password: hash, role, token: [token] });
   } else {
     const [id] = await knex("users")
       .insert({ email, password: hash, role })
@@ -65,7 +65,8 @@ async function findById(id) {
 
 async function updateUser(id, changes) {
   if (cfg.db.type === dbs.MONGODB) {
-    return UserM.findByIdAndUpdate(id, changes, { new: true }).lean();
+    console.log(changes);
+    return UserM.findByIdAndUpdate(id, changes, { new: true });
   }
   await knex("users").where({ id }).update(changes);
   return knex("users").where({ id }).first();

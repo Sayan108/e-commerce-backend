@@ -7,7 +7,7 @@ import { Messages } from "../config/messages.js";
 import { Roles } from "../config/index.js";
 
 export const register = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { email, password, role } = req.body;
   if (role && role !== Roles.CUSTOMER) {
     return res.status(403).json({ error: Messages.AUTH.INVALID_ROLE });
   }
@@ -22,14 +22,15 @@ export const register = async (req, res) => {
         .status(400)
         .json({ error: Messages.AUTH.EMAIL_ALREADY_EXISTS });
     const user = await userModel.createUser({
-      name,
       email,
       password,
       role: Roles.CUSTOMER,
     });
     const token = signToken(user);
+    const resp = await userModel.updateUser(user._id, { token: [token] });
+
     res.json({
-      user: { name, email, phone, role, _id: user._id },
+      user: { email, role: user.role, _id: user._id },
       token,
       message: Messages.AUTH.REGISTER_SUCCESS,
     });
@@ -84,7 +85,8 @@ export const login = async (req, res) => {
 };
 
 export const createAdminUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { email, password, role } = req.body;
+  console.log(email, password, role);
   if (!role || (role !== Roles.ADMIN && role !== Roles.SUPERADMIN)) {
     return res.status(403).json({ error: Messages.AUTH.INVALID_ROLE });
   }
@@ -98,14 +100,13 @@ export const createAdminUser = async (req, res) => {
       return res
         .status(400)
         .json({ error: Messages.AUTH.EMAIL_ALREADY_EXISTS });
-    const user = await userModel.createUser({
-      name,
+    await userModel.createUser({
       email,
       password,
       role,
     });
-    const token = signToken(user);
-    res.json({ user, token, message: Messages.AUTH.REGISTER_SUCCESS });
+
+    res.json({ message: Messages.AUTH.REGISTER_SUCCESS });
   } catch (error) {
     res.status(500).json({ error, message: Messages.AUTH.REGISTER_FAILURE });
   }

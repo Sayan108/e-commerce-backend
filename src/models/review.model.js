@@ -53,6 +53,7 @@ async function createReviewsBulk(dataArray) {
   if (!Array.isArray(dataArray) || dataArray.length === 0) {
     return [];
   }
+  console.log(dataArray);
 
   /* -------------------- MONGODB -------------------- */
   if (cfg.db.type === dbs.MONGODB) {

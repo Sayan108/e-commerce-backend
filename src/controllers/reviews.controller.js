@@ -120,9 +120,11 @@ export const deleteReview = async (req, res) => {
 export const bulkInsertReviews = async (req, res) => {
   try {
     const { reviews } = req.body;
+    console.log(reviews, "reviews");
     const b = await reviewModel.createReviewsBulk(reviews);
     res.json({ message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_SUCCESS });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       error,
       message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_ERROR,
