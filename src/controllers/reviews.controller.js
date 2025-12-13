@@ -1,6 +1,7 @@
 import { Messages } from "../config/messages.js";
 import productModel from "../models/product.model.js";
 import reviewModel from "../models/review.model.js";
+import userModel from "../models/user.model.js";
 
 /* ===========================
    ✅ POST REVIEW
@@ -17,11 +18,14 @@ export const postReview = async (req, res) => {
   try {
     const product = await productModel.getProductById(productId);
     if (!product) return res.json({ message: "Product not found " });
+    const user = await userModel.findById(req.user.id);
     const review = await reviewModel.createReview({
       userId: req.user.id,
       productId,
       rating,
       comment: comment || "",
+      userName: user.name || "User",
+      userProfilePicture: user.profilePicture || "",
     });
 
     res.json({
@@ -58,7 +62,7 @@ export const getProductReviews = async (req, res) => {
 
     res.json({
       list,
-      message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_FETCH_SUCCESS,
+      message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_SUCCESS,
     });
   } catch (error) {
     res.status(500).json({
@@ -105,6 +109,19 @@ export const deleteReview = async (req, res) => {
     res.json({
       message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_DELETED,
     });
+  } catch (error) {
+    res.status(500).json({
+      error,
+      message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_ERROR,
+    });
+  }
+};
+
+export const bulkInsertReviews = async (req, res) => {
+  try {
+    const { reviews } = req.body;
+    const b = await reviewModel.createReviewsBulk(reviews);
+    res.json({ message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_SUCCESS });
   } catch (error) {
     res.status(500).json({
       error,

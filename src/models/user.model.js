@@ -19,6 +19,7 @@ async function init(dbHandles) {
         phone: { type: String },
         token: [{ type: String }],
         cartItemCount: { type: Number, default: 0 },
+        profilepicture: { type: String },
       },
       { timestamps: true }
     );
@@ -40,7 +41,6 @@ async function createUser({ email, password, role = Roles.CUSTOMER }) {
         // sqlite/pg differences
         if (err && err.message && err.message.indexOf("RETURNING") !== -1) {
           const res = await knex("users").insert({
-            name,
             email,
             password: hash,
             role,

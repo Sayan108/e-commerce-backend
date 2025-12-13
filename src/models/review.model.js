@@ -19,8 +19,12 @@ async function init(dbHandles) {
           ref: "Product",
           required: true,
         },
-        rating: { type: Number, required: true },
+        rating: { type: Number, required: true, min: 1.0, max: 5.0 },
         comment: { type: String },
+
+        userName: { type: String },
+
+        userProfilePicture: { type: String },
       },
       { timestamps: true }
     );
@@ -43,6 +47,36 @@ async function createReview(data) {
       throw err;
     });
   return knex("reviews").where({ id }).first();
+}
+
+async function createReviewsBulk(dataArray) {
+  if (!Array.isArray(dataArray) || dataArray.length === 0) {
+    return [];
+  }
+
+  /* -------------------- MONGODB -------------------- */
+  if (cfg.db.type === dbs.MONGODB) {
+    return ReviewM.insertMany(dataArray, { ordered: true });
+  }
+
+  /* -------------------- SQL (KNEX) -------------------- */
+  try {
+    const ids = await knex("reviews").insert(dataArray).returning("id");
+
+    // PostgreSQL returns array of objects or ids
+    const insertedIds = ids.map((r) => (typeof r === "object" ? r.id : r));
+
+    return knex("reviews").whereIn("id", insertedIds);
+  } catch (err) {
+    // ---- MySQL / SQLite fallback (no RETURNING support)
+    if (err?.message?.includes("RETURNING")) {
+      await knex("reviews").insert(dataArray);
+
+      // Fetch latest inserted rows (best effort)
+      return knex("reviews").orderBy("id", "desc").limit(dataArray.length);
+    }
+    throw err;
+  }
 }
 
 async function listReviewsByProduct(productId) {
@@ -69,6 +103,7 @@ export default {
   init,
   createReview,
   listReviewsByProduct,
+  createReviewsBulk,
   deleteReview,
   updateReview,
 };
