@@ -6,15 +6,7 @@ export const createAddress = async (req, res) => {
     const address = await addressModel.createAddress(req.body);
 
     res.json({
-      address: {
-        userId: address.userId,
-        addressType: address.addressType,
-        lineOne: address.lineOne,
-        city: address.city,
-        state: address.state,
-        zip: address.zip,
-        country: address.country,
-      },
+      address,
       message: Messages.ADDRESS.ADDRESS_CREATED,
     });
   } catch (error) {

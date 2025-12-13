@@ -28,12 +28,6 @@ async function init(dbHandles) {
         shippingaddress: { type: String, required: true },
         items: [
           {
-            userId: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "User",
-              required: true,
-            },
-
             productId: {
               type: mongoose.Schema.Types.ObjectId,
               ref: "Product",
