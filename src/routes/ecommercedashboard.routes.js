@@ -14,7 +14,15 @@ import {
   getDashboardVideos,
   updateDashBoardBanner,
   updateDashboardVideo,
+  listFaqs,
+  createFaq,
+  deleteFaq,
+  bulkUpdateFaqs,
+  getContactUsInfo,
+  createOrUpdateContactUsInfo,
 } from "../controllers/ecommercedashboard.controller.js";
+
+/* ===================== BANNER ===================== */
 
 router.post(
   "/banner",
@@ -39,6 +47,8 @@ router.put(
   updateDashBoardBanner
 );
 
+/* ===================== VIDEOS ===================== */
+
 router.get("/videos", getDashboardVideos);
 
 router.post(
@@ -60,6 +70,42 @@ router.delete(
   authMiddleware,
   requireRole(Roles.ADMIN, Roles.SUPERADMIN),
   deleteDashboardVideo
+);
+
+/* ===================== FAQ ===================== */
+
+// Public
+router.get("/faq", listFaqs);
+
+// Admin
+router.post(
+  "/faq",
+  authMiddleware,
+  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  createFaq
+);
+
+router.delete(
+  "/faq/:id",
+  authMiddleware,
+  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  deleteFaq
+);
+
+router.post(
+  "/faq/bulk-insert",
+  authMiddleware,
+  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  bulkUpdateFaqs
+);
+
+router.get("/contactusinfo", getContactUsInfo);
+
+router.post(
+  "/contactusinfo",
+  authMiddleware,
+  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  createOrUpdateContactUsInfo
 );
 
 export { router };

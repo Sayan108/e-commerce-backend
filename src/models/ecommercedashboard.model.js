@@ -4,6 +4,8 @@ let knex;
 let mongoose;
 let ProductM;
 let VideoM;
+let ContactUsInfoM;
+let faqM;
 
 async function init(dbHandles) {
   if (cfg.db.type === dbs.MONGODB) {
@@ -16,6 +18,8 @@ async function init(dbHandles) {
         description: String,
         link: String,
         imageurl: String,
+        ctaButtonTitle: String,
+        subFeatures: [String],
       },
       { timestamps: true }
     );
@@ -30,7 +34,27 @@ async function init(dbHandles) {
       },
       { timestamps: true }
     );
-
+    // contactus schema
+    const contactUsInfoSchema = new mongoose.Schema(
+      {
+        email: String,
+        phone: String,
+        address: String,
+        contactusEmail: String,
+      },
+      { timestamps: true }
+    );
+    const faqSchema = new mongoose.Schema(
+      {
+        question: String,
+        answer: String,
+      },
+      { timestamps: true }
+    );
+    ContactUsInfoM =
+      mongoose.models.ContactUsData ||
+      mongoose.model("ContactUsData", contactUsInfoSchema);
+    faqM = mongoose.models.FAQ || mongoose.model("FAQ", faqSchema);
     ProductM =
       mongoose.models.Dashboarddata ||
       mongoose.model("Dashboarddata", bannerSchema);
@@ -131,6 +155,114 @@ async function deleteDashboardVideo(id) {
   return knex("dashboard_videos").where({ id }).del();
 }
 
+async function createOrUpdateContactUsInfo(body) {
+  // ======================
+  // MongoDB
+  // ======================
+  if (cfg.db.type === dbs.MONGODB) {
+    const existing = await ContactUsInfoM.findOne();
+
+    if (existing) {
+      return await ContactUsInfoM.findByIdAndUpdate(
+        existing._id,
+        { ...body },
+        { new: true }
+      );
+    }
+
+    return await ContactUsInfoM.create(body);
+  }
+
+  // ======================
+  // SQL (Knex)
+  // ======================
+  const existing = await knex("contact_us_info").first();
+
+  if (existing) {
+    await knex("contact_us_info").where({ id: existing.id }).update(body);
+
+    return knex("contact_us_info").where({ id: existing.id }).first();
+  }
+
+  const [id] = await knex("contact_us_info").insert(body).returning("id");
+
+  return knex("contact_us_info").where({ id }).first();
+}
+
+async function getContactUsInfo() {
+  /* ======================
+     MongoDB
+  ====================== */
+  if (cfg.db.type === dbs.MONGODB) {
+    return ContactUsInfoM.findOne().lean();
+  }
+
+  /* ======================
+     SQL (Knex)
+  ====================== */
+  return knex("contact_us_info").first();
+}
+
+async function createFaq(data) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return faqM.create(data);
+  }
+
+  const [id] = await knex(sqlTableNames.FAQ)
+    .insert(data)
+    .returning("id")
+    .catch(async (err) => {
+      if (err?.message?.includes("RETURNING")) {
+        const res = await knex(sqlTableNames.FAQ).insert(data);
+        return [res[0]];
+      }
+      throw err;
+    });
+
+  return knex(sqlTableNames.FAQ).where({ id }).first();
+}
+async function listFaqs() {
+  if (cfg.db.type === dbs.MONGODB) {
+    return faqM.find().sort({ createdAt: -1 }).lean();
+  }
+
+  return knex(sqlTableNames.FAQ).select("*").orderBy("created_at", "desc");
+}
+async function deleteFaq(id) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return faqM.findByIdAndDelete(id);
+  }
+
+  return knex(sqlTableNames.FAQ).where({ id }).del();
+}
+async function bulkInsertFaqs(faqs) {
+  if (!Array.isArray(faqs) || faqs.length === 0) {
+    return [];
+  }
+
+  /* ======================
+     MongoDB
+  ====================== */
+  if (cfg.db.type === dbs.MONGODB) {
+    const docs = faqs.map((faq) => ({
+      question: faq.question,
+      answer: faq.answer,
+    }));
+
+    await faqM.insertMany(docs, { ordered: false });
+    return faqM.find().lean();
+  }
+
+  /* ======================
+     SQL (Knex)
+  ====================== */
+  await knex.transaction(async (trx) => {
+    await trx(sqlTableNames.FAQ).insert(faqs);
+  });
+
+  return knex(sqlTableNames.FAQ).select("*");
+}
+
 export default {
   init,
 
@@ -147,4 +279,15 @@ export default {
   getDashboardVideo,
   updateDashboardVideo,
   deleteDashboardVideo,
+
+  //other
+  createOrUpdateContactUsInfo,
+  getContactUsInfo,
+
+  //faq
+
+  createFaq,
+  listFaqs,
+  bulkInsertFaqs,
+  deleteFaq,
 };

@@ -36,6 +36,11 @@ export const getAllUsers = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
+    if (req.body.password) {
+      return res
+        .status(400)
+        .json({ message: "Cannot update user password from here" });
+    }
     const updatedUser = await userModel.updateUser(
       req.body.id,
       req.body.changes
@@ -50,6 +55,11 @@ export const updateUser = async (req, res) => {
 
 export const updateSelf = async (req, res) => {
   try {
+    if (req.body.password) {
+      return res
+        .status(400)
+        .json({ message: "Cannot update user password from here" });
+    }
     const updateSelf = await userModel.updateUser(req.user.id, req.body);
     res
       .status(200)

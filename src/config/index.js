@@ -48,6 +48,7 @@ export const sqlTableNames = {
   ORDERS: "orders",
   ORDER_ITEMS: "order_items",
   REVIEWS: "reviews",
+  FAQ: "faq",
 };
 
 export const shouldPingBackend = true;
