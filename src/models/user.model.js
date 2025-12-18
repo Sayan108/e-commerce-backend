@@ -3,93 +3,140 @@ import { config as cfg, dbs, Roles } from "../config/index.js";
 
 let knex;
 let mongoose;
-let UserSchema;
 let UserM;
 
+/* ===========================
+          INIT
+=========================== */
 async function init(dbHandles) {
   if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
-    // define schema
-    UserSchema = new mongoose.Schema(
+
+    const userSchema = new mongoose.Schema(
       {
-        name: String,
-        email: { type: String, unique: true, required: true },
-        password: String,
-        role: { type: String, default: Roles.CUSTOMER, required: true },
-        phone: { type: String },
-        token: [{ type: String }],
+        name: { type: String, trim: true },
+        email: {
+          type: String,
+          unique: true,
+          required: true,
+          lowercase: true,
+          trim: true,
+          index: true,
+        },
+        password: { type: String, required: true, select: false },
+        role: {
+          type: String,
+          enum: Object.values(Roles),
+          default: Roles.CUSTOMER,
+        },
+        phone: { type: String, trim: true },
         cartItemCount: { type: Number, default: 0 },
-        profilepicture: { type: String },
+        profilePicture: { type: String },
       },
       { timestamps: true }
     );
-    UserM = mongoose.models.User || mongoose.model("User", UserSchema);
+
+    UserM = mongoose.models.User || mongoose.model("User", userSchema);
   } else {
     knex = dbHandles.knex;
   }
 }
 
-async function createUser({ email, password, role = Roles.CUSTOMER, token }) {
+/* ===========================
+      PUBLIC FIELDS ONLY
+=========================== */
+const USER_PUBLIC_FIELDS =
+  "_id name email role phone cartItemCount profilePicture createdAt";
+
+/* ===========================
+      CREATE USER
+=========================== */
+async function createUser({ email, password, role = Roles.CUSTOMER }) {
   const hash = await bcrypt.hash(password, 10);
+
   if (cfg.db.type === dbs.MONGODB) {
-    return UserM.create({ email, password: hash, role, token: [token] });
-  } else {
-    const [id] = await knex("users")
-      .insert({ email, password: hash, role })
-      .returning("id")
-      .catch(async (err) => {
-        // sqlite/pg differences
-        if (err && err.message && err.message.indexOf("RETURNING") !== -1) {
-          const res = await knex("users").insert({
-            email,
-            password: hash,
-            role,
-          });
-          return [res[0]];
-        }
-        throw err;
-      });
-    return knex("users").where({ id }).first();
+    const user = await UserM.create({
+      email: email.toLowerCase(),
+      password: hash,
+      role,
+    });
+
+    return UserM.findById(user._id).select(USER_PUBLIC_FIELDS).lean();
   }
-}
 
-async function findByEmail(email) {
-  if (cfg.db.type === dbs.MONGODB) return UserM.findOne({ email }).lean();
-  return knex("users").where({ email }).first();
-}
+  const [id] = await knex("users").insert({
+    email: email.toLowerCase(),
+    password: hash,
+    role,
+  });
 
-async function findById(id) {
-  if (cfg.db.type === dbs.MONGODB) return UserM.findById(id).lean();
   return knex("users").where({ id }).first();
 }
 
-async function updateUser(id, changes) {
+/* ===========================
+      FIND BY EMAIL (AUTH)
+=========================== */
+async function findByEmail(email) {
   if (cfg.db.type === dbs.MONGODB) {
-    console.log(changes);
-    return UserM.findByIdAndUpdate(id, changes, { new: true });
+    return UserM.findOne({ email: email.toLowerCase() })
+      .select("+password")
+      .lean();
   }
+
+  return knex("users").where({ email: email.toLowerCase() }).first();
+}
+
+/* ===========================
+      FIND BY ID (SAFE)
+=========================== */
+async function findById(id) {
+  if (cfg.db.type === dbs.MONGODB) {
+    return UserM.findById(id).select(USER_PUBLIC_FIELDS).lean();
+  }
+
+  return knex("users").where({ id }).first();
+}
+
+/* ===========================
+      UPDATE USER
+=========================== */
+async function updateUser(id, changes) {
+  delete changes.password; // ❌ never update password here
+
+  if (cfg.db.type === dbs.MONGODB) {
+    return UserM.findByIdAndUpdate(id, changes, { new: true })
+      .select(USER_PUBLIC_FIELDS)
+      .lean();
+  }
+
   await knex("users").where({ id }).update(changes);
   return knex("users").where({ id }).first();
 }
 
+/* ===========================
+      LIST USERS (ADMIN)
+=========================== */
 async function listUsers({
   page = 1,
   limit = 10,
-  sortBy = "createdAt", // name | email | createdAt
-  sortOrder = "desc", // asc | desc
+  sortBy = "createdAt",
+  sortOrder = "desc",
 } = {}) {
   page = Number(page);
-  limit = Math.min(Number(limit), 100); // safety cap
+  limit = Math.min(Number(limit), 100);
   const skip = (page - 1) * limit;
 
-  /* ---------------------- MONGODB ---------------------- */
+  /* ---------- MONGODB ---------- */
   if (cfg.db.type === dbs.MONGODB) {
-    const sort = {
-      [sortBy]: sortOrder === "asc" ? 1 : -1,
-    };
+    const sort = { [sortBy]: sortOrder === "asc" ? 1 : -1 };
 
     const [data, total] = await Promise.all([
-      UserM.find().sort(sort).skip(skip).limit(limit).lean(),
+      UserM.find()
+        .select(USER_PUBLIC_FIELDS)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
       UserM.countDocuments(),
     ]);
 
@@ -104,30 +151,35 @@ async function listUsers({
     };
   }
 
-  /* ---------------------- SQL / KNEX ---------------------- */
-
+  /* ---------- SQL ---------- */
   const query = knex("users");
 
-  const countQuery = query.clone().count("* as count").first();
-
-  const dataQuery = query
-    .clone()
-    .orderBy(sortBy, sortOrder)
-    .limit(limit)
-    .offset(skip)
-    .select("*");
-
-  const [data, countResult] = await Promise.all([dataQuery, countQuery]);
-
-  const total = Number(countResult.count);
+  const [data, count] = await Promise.all([
+    query
+      .clone()
+      .orderBy(sortBy, sortOrder)
+      .limit(limit)
+      .offset(skip)
+      .select(
+        "id",
+        "name",
+        "email",
+        "role",
+        "phone",
+        "cartItemCount",
+        "profilePicture",
+        "createdAt"
+      ),
+    query.clone().count("* as count").first(),
+  ]);
 
   return {
     data,
     pagination: {
-      total,
+      total: Number(count.count),
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(count.count / limit),
     },
   };
 }

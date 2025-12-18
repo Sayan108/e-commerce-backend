@@ -71,3 +71,15 @@ export const bulkInsertCategories = async (req, res) => {
     res.status(500).json({ error });
   }
 };
+
+export const getFeaturedCategories = async (req, res) => {
+  try {
+    const featured = await categoryModel.listFeaturedCategories();
+    res.json({
+      featured,
+      message: "Featured categories fetched successfully ",
+    });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};

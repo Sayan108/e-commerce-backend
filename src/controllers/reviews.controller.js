@@ -17,32 +17,46 @@ export const postReview = async (req, res) => {
 
   try {
     const product = await productModel.getProductById(productId);
-    if (!product) return res.json({ message: "Product not found " });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
     const user = await userModel.findById(req.user.id);
+
     const review = await reviewModel.createReview({
       userId: req.user.id,
       productId,
       rating,
       comment: comment || "",
-      userName: user.name || "User",
-      userProfilePicture: user.profilePicture || "",
+      userName: user?.name || "User",
+      userProfilePicture: user?.profilePicture || "",
     });
 
-    res.json({
+    /* ---------------- UPDATE PRODUCT RATING ---------------- */
+    const reviews = await reviewModel.listReviewsByProduct(productId);
+
+    const totalRating = reviews.reduce((sum, r) => sum + Number(r.rating), 0);
+
+    const avgRating = totalRating / reviews.length;
+
+    await productModel.updateProduct(productId, {
+      reviewCount: reviews.length,
+      rating: avgRating,
+    });
+
+    /* ---------------- SEND RESPONSE (ONLY ONCE) ---------------- */
+    return res.status(201).json({
       review,
       message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_SUCCESS,
     });
-    const list = await reviewModel.listReviewsByProduct(productId);
-    const newRating =
-      (list.reduce((ele) => +ele.rating) + rating) / (list.length + 1);
-    await productModel.updateProduct(productId, {
-      review: product.review + 1,
-      rating: newRating,
-    });
   } catch (error) {
-    res.status(500).json({
-      error,
+    console.error("Post Review Error:", error);
+
+    if (res.headersSent) return;
+
+    return res.status(500).json({
       message: Messages.PRODUCT_REVIEW.PRODUCT_REVIEW_ERROR,
+      error: error.message,
     });
   }
 };

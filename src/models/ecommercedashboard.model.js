@@ -2,16 +2,19 @@ import { config as cfg, dbs, sqlTableNames } from "../config/index.js";
 
 let knex;
 let mongoose;
-let ProductM;
-let VideoM;
-let ContactUsInfoM;
-let faqM;
 
+let BannerM;
+let VideoM;
+let ContactUsM;
+let FaqM;
+
+/* ===========================
+        INIT
+=========================== */
 async function init(dbHandles) {
   if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
 
-    // Banner Schema
     const bannerSchema = new mongoose.Schema(
       {
         name: String,
@@ -24,7 +27,6 @@ async function init(dbHandles) {
       { timestamps: true }
     );
 
-    // Video Schema
     const videoSchema = new mongoose.Schema(
       {
         title: String,
@@ -34,8 +36,8 @@ async function init(dbHandles) {
       },
       { timestamps: true }
     );
-    // contactus schema
-    const contactUsInfoSchema = new mongoose.Schema(
+
+    const contactSchema = new mongoose.Schema(
       {
         email: String,
         phone: String,
@@ -44,6 +46,7 @@ async function init(dbHandles) {
       },
       { timestamps: true }
     );
+
     const faqSchema = new mongoose.Schema(
       {
         question: String,
@@ -51,218 +54,208 @@ async function init(dbHandles) {
       },
       { timestamps: true }
     );
-    ContactUsInfoM =
-      mongoose.models.ContactUsData ||
-      mongoose.model("ContactUsData", contactUsInfoSchema);
-    faqM = mongoose.models.FAQ || mongoose.model("FAQ", faqSchema);
-    ProductM =
-      mongoose.models.Dashboarddata ||
-      mongoose.model("Dashboarddata", bannerSchema);
+
+    BannerM =
+      mongoose.models.DashboardBanner ||
+      mongoose.model("DashboardData", bannerSchema);
 
     VideoM =
       mongoose.models.DashboardVideo ||
       mongoose.model("DashboardVideo", videoSchema);
+
+    ContactUsM =
+      mongoose.models.ContactUsInfo ||
+      mongoose.model("ContactUsInfo", contactSchema);
+
+    FaqM = mongoose.models.FAQ || mongoose.model("FAQ", faqSchema);
   } else {
     knex = dbHandles.knex;
   }
 }
 
-/* ===================== BANNER CRUD ===================== */
+/* ===========================
+        SHARED FIELDS
+=========================== */
+const BANNER_FIELDS =
+  "_id name description link imageurl ctaButtonTitle subFeatures";
+const VIDEO_FIELDS = "_id title description videolink thumbnail";
+const FAQ_FIELDS = "_id question answer";
 
+/* ===========================
+        BANNER CRUD
+=========================== */
 async function createDashBoardBanner(data) {
-  if (cfg.db.type === dbs.MONGODB) return ProductM.create(data);
+  if (cfg.db.type === dbs.MONGODB) {
+    const doc = await BannerM.create(data);
+    return BannerM.findById(doc._id).select(BANNER_FIELDS).lean();
+  }
 
-  const [id] = await knex(sqlTableNames.DASHBOARDDATA)
-    .insert(data)
-    .returning("id")
-    .catch(async (err) => {
-      if (err?.message?.includes("RETURNING")) {
-        const res = await knex("dashboarddata").insert(data);
-        return [res[0]];
-      }
-      throw err;
-    });
-
-  return knex("dashboarddata").where({ id }).first();
+  const [id] = await knex(sqlTableNames.DASHBOARDDATA).insert(data);
+  return knex(sqlTableNames.DASHBOARDDATA).where({ id }).select("*").first();
 }
 
 async function listDashBoardBanners() {
-  if (cfg.db.type === dbs.MONGODB) return ProductM.find().lean();
-  return knex("dashboarddata").select("*");
+  if (cfg.db.type === dbs.MONGODB) {
+    return BannerM.find().select(BANNER_FIELDS).lean();
+  }
+
+  return knex(sqlTableNames.DASHBOARDDATA).select("*");
 }
 
 async function getDashBoardBanner(id) {
-  if (cfg.db.type === dbs.MONGODB) return ProductM.findById(id).lean();
-  return knex("dashboarddata").where({ id }).first();
+  if (cfg.db.type === dbs.MONGODB) {
+    return BannerM.findById(id).select(BANNER_FIELDS).lean();
+  }
+
+  return knex(sqlTableNames.DASHBOARDDATA).where({ id }).first();
 }
 
 async function updateDashBoardBanner(id, changes) {
-  if (cfg.db.type === dbs.MONGODB)
-    return ProductM.findByIdAndUpdate(id, changes, { new: true }).lean();
+  if (cfg.db.type === dbs.MONGODB) {
+    return BannerM.findByIdAndUpdate(id, changes, { new: true })
+      .select(BANNER_FIELDS)
+      .lean();
+  }
 
-  await knex("dashboarddata").where({ id }).update(changes);
-  return knex("dashboarddata").where({ id }).first();
+  await knex(sqlTableNames.DASHBOARDDATA).where({ id }).update(changes);
+  return knex(sqlTableNames.DASHBOARDDATA).where({ id }).first();
 }
 
 async function deleteDashBoardBanner(id) {
-  if (cfg.db.type === dbs.MONGODB) return ProductM.findByIdAndDelete(id);
+  if (cfg.db.type === dbs.MONGODB) {
+    return BannerM.findByIdAndDelete(id).select("_id").lean();
+  }
 
-  return knex("dashboarddata").where({ id }).del();
+  return knex(sqlTableNames.DASHBOARDDATA).where({ id }).del();
 }
 
-/* ===================== VIDEO CRUD ===================== */
-
+/* ===========================
+        VIDEO CRUD
+=========================== */
 async function createDashboardVideo(data) {
-  if (cfg.db.type === dbs.MONGODB) return VideoM.create(data);
+  if (cfg.db.type === dbs.MONGODB) {
+    const doc = await VideoM.create(data);
+    return VideoM.findById(doc._id).select(VIDEO_FIELDS).lean();
+  }
 
-  const [id] = await knex("dashboard_videos")
-    .insert(data)
-    .returning("id")
-    .catch(async (err) => {
-      if (err?.message?.includes("RETURNING")) {
-        const res = await knex("dashboard_videos").insert(data);
-        return [res[0]];
-      }
-      throw err;
-    });
-
+  const [id] = await knex("dashboard_videos").insert(data);
   return knex("dashboard_videos").where({ id }).first();
 }
 
 async function listDashboardVideos() {
-  if (cfg.db.type === dbs.MONGODB) return VideoM.find().lean();
+  if (cfg.db.type === dbs.MONGODB) {
+    return VideoM.find().select(VIDEO_FIELDS).lean();
+  }
 
   return knex("dashboard_videos").select("*");
 }
 
 async function getDashboardVideo(id) {
-  if (cfg.db.type === dbs.MONGODB) return VideoM.findById(id).lean();
+  if (cfg.db.type === dbs.MONGODB) {
+    return VideoM.findById(id).select(VIDEO_FIELDS).lean();
+  }
 
   return knex("dashboard_videos").where({ id }).first();
 }
 
 async function updateDashboardVideo(id, changes) {
-  if (cfg.db.type === dbs.MONGODB)
-    return VideoM.findByIdAndUpdate(id, changes, { new: true }).lean();
+  if (cfg.db.type === dbs.MONGODB) {
+    return VideoM.findByIdAndUpdate(id, changes, { new: true })
+      .select(VIDEO_FIELDS)
+      .lean();
+  }
 
   await knex("dashboard_videos").where({ id }).update(changes);
   return knex("dashboard_videos").where({ id }).first();
 }
 
 async function deleteDashboardVideo(id) {
-  if (cfg.db.type === dbs.MONGODB) return VideoM.findByIdAndDelete(id);
+  if (cfg.db.type === dbs.MONGODB) {
+    return VideoM.findByIdAndDelete(id).select("_id").lean();
+  }
 
   return knex("dashboard_videos").where({ id }).del();
 }
 
-async function createOrUpdateContactUsInfo(body) {
-  // ======================
-  // MongoDB
-  // ======================
+/* ===========================
+      CONTACT US (SINGLETON)
+=========================== */
+async function createOrUpdateContactUsInfo(data) {
   if (cfg.db.type === dbs.MONGODB) {
-    const existing = await ContactUsInfoM.findOne();
+    const existing = await ContactUsM.findOne();
 
     if (existing) {
-      return await ContactUsInfoM.findByIdAndUpdate(
-        existing._id,
-        { ...body },
-        { new: true }
-      );
+      return ContactUsM.findByIdAndUpdate(existing._id, data, {
+        new: true,
+      }).lean();
     }
 
-    return await ContactUsInfoM.create(body);
+    return ContactUsM.create(data);
   }
 
-  // ======================
-  // SQL (Knex)
-  // ======================
   const existing = await knex("contact_us_info").first();
 
   if (existing) {
-    await knex("contact_us_info").where({ id: existing.id }).update(body);
-
+    await knex("contact_us_info").where({ id: existing.id }).update(data);
     return knex("contact_us_info").where({ id: existing.id }).first();
   }
 
-  const [id] = await knex("contact_us_info").insert(body).returning("id");
-
+  const [id] = await knex("contact_us_info").insert(data);
   return knex("contact_us_info").where({ id }).first();
 }
 
 async function getContactUsInfo() {
-  /* ======================
-     MongoDB
-  ====================== */
   if (cfg.db.type === dbs.MONGODB) {
-    return ContactUsInfoM.findOne().lean();
+    return ContactUsM.findOne().lean();
   }
 
-  /* ======================
-     SQL (Knex)
-  ====================== */
   return knex("contact_us_info").first();
 }
 
+/* ===========================
+            FAQ
+=========================== */
 async function createFaq(data) {
   if (cfg.db.type === dbs.MONGODB) {
-    return faqM.create(data);
+    const doc = await FaqM.create(data);
+    return FaqM.findById(doc._id).select(FAQ_FIELDS).lean();
   }
 
-  const [id] = await knex(sqlTableNames.FAQ)
-    .insert(data)
-    .returning("id")
-    .catch(async (err) => {
-      if (err?.message?.includes("RETURNING")) {
-        const res = await knex(sqlTableNames.FAQ).insert(data);
-        return [res[0]];
-      }
-      throw err;
-    });
-
+  const [id] = await knex(sqlTableNames.FAQ).insert(data);
   return knex(sqlTableNames.FAQ).where({ id }).first();
 }
+
 async function listFaqs() {
   if (cfg.db.type === dbs.MONGODB) {
-    return faqM.find().sort({ createdAt: -1 }).lean();
+    return FaqM.find().sort({ createdAt: -1 }).select(FAQ_FIELDS).lean();
   }
 
   return knex(sqlTableNames.FAQ).select("*").orderBy("created_at", "desc");
 }
+
 async function deleteFaq(id) {
   if (cfg.db.type === dbs.MONGODB) {
-    return faqM.findByIdAndDelete(id);
+    return FaqM.findByIdAndDelete(id).select("_id").lean();
   }
 
   return knex(sqlTableNames.FAQ).where({ id }).del();
 }
+
 async function bulkInsertFaqs(faqs) {
-  if (!Array.isArray(faqs) || faqs.length === 0) {
-    return [];
-  }
+  if (!Array.isArray(faqs) || faqs.length === 0) return [];
 
-  /* ======================
-     MongoDB
-  ====================== */
   if (cfg.db.type === dbs.MONGODB) {
-    const docs = faqs.map((faq) => ({
-      question: faq.question,
-      answer: faq.answer,
-    }));
-
-    await faqM.insertMany(docs, { ordered: false });
-    return faqM.find().lean();
+    await FaqM.insertMany(faqs, { ordered: false });
+    return FaqM.find().select(FAQ_FIELDS).lean();
   }
 
-  /* ======================
-     SQL (Knex)
-  ====================== */
-  await knex.transaction(async (trx) => {
-    await trx(sqlTableNames.FAQ).insert(faqs);
-  });
-
+  await knex(sqlTableNames.FAQ).insert(faqs);
   return knex(sqlTableNames.FAQ).select("*");
 }
 
+/* ===========================
+        EXPORT
+=========================== */
 export default {
   init,
 
@@ -280,12 +273,11 @@ export default {
   updateDashboardVideo,
   deleteDashboardVideo,
 
-  //other
+  // Contact
   createOrUpdateContactUsInfo,
   getContactUsInfo,
 
-  //faq
-
+  // FAQ
   createFaq,
   listFaqs,
   bulkInsertFaqs,

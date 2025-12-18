@@ -7,6 +7,7 @@ import {
   createCategory,
   deleteCategory,
   getAllCategories,
+  getFeaturedCategories,
   updateCategory,
 } from "../controllers/categories.controller.js";
 import { Roles } from "../config/index.js";
@@ -39,5 +40,7 @@ router.post(
   requireRole(Roles.ADMIN, Roles.SUPERADMIN),
   bulkInsertCategories
 );
+
+router.get("/featured", getFeaturedCategories);
 
 export { router };

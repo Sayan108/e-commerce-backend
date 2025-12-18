@@ -9,6 +9,7 @@ import {
   createProducts,
   deleteProduct,
   getAllProducts,
+  getNewarrivals,
   getProductById,
   getProductsByCategoriesWithFilter,
   updateProduct,
@@ -45,5 +46,7 @@ router.post(
   requireRole(Roles.ADMIN, Roles.SUPERADMIN),
   bulkInsertProducts
 );
+
+router.get("/newarrival", getNewarrivals);
 
 export { router };

@@ -1,9 +1,5 @@
 import { config as cfg, dbs } from "../config/index.js";
 
-/* ===========================
-   ✅ MONGOOSE SCHEMA
-=========================== */
-
 let knex;
 let mongoose;
 let CartM;
@@ -11,23 +7,21 @@ let CartM;
 async function init(dbHandles) {
   if (cfg.db.type === dbs.MONGODB) {
     mongoose = dbHandles.mongoose;
-    const s = new mongoose.Schema(
+
+    const schema = new mongoose.Schema(
       {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
           required: true,
         },
-
         productId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
           required: true,
         },
-
         thumbnail: String,
         itemname: { type: String, required: true },
-
         quantity: {
           type: Number,
           default: 1,
@@ -37,16 +31,20 @@ async function init(dbHandles) {
       },
       { timestamps: true }
     );
-    CartM = mongoose.models.Cart || mongoose.model("Cart", s);
+
+    CartM = mongoose.models.Cart || mongoose.model("Cart", schema);
   } else {
     knex = dbHandles.knex;
   }
 }
 
-/* =====================
-     ✅ ADD TO CART
-  ===================== */
+/* -------------------- SHARED SELECT -------------------- */
+const CART_FIELDS = "_id userId productId thumbnail itemname quantity price";
+
+/* -------------------- ADD TO CART -------------------- */
 async function addToCart(data) {
+  const qty = Math.max(1, data.quantity || 1);
+
   if (cfg.db.type === dbs.MONGODB) {
     const existing = await CartM.findOne({
       userId: data.userId,
@@ -54,14 +52,31 @@ async function addToCart(data) {
     });
 
     if (existing) {
-      existing.quantity += data.quantity || 1;
-      return existing.save();
+      existing.quantity += qty;
+      const saved = await existing.save();
+      return saved.toObject({
+        transform: (_, ret) => {
+          delete ret.__v;
+          delete ret.createdAt;
+          delete ret.updatedAt;
+          return ret;
+        },
+      });
     }
 
-    return await CartM.create(data);
+    const doc = await CartM.create({ ...data, quantity: qty });
+    return {
+      _id: doc._id,
+      userId: doc.userId,
+      productId: doc.productId,
+      thumbnail: doc.thumbnail,
+      itemname: doc.itemname,
+      quantity: doc.quantity,
+      price: doc.price,
+    };
   }
 
-  // ✅ SQL (Knex)
+  // ---------- SQL ----------
   const existing = await knex("cart")
     .where({
       userId: data.userId,
@@ -73,55 +88,98 @@ async function addToCart(data) {
     await knex("cart")
       .where({ id: existing.id })
       .update({
-        quantity: existing.quantity + (data.quantity || 1),
+        quantity: existing.quantity + qty,
       });
 
-    return knex("cart").where({ id: existing.id }).first();
+    return knex("cart")
+      .where({ id: existing.id })
+      .select(
+        "id as _id",
+        "userId",
+        "productId",
+        "thumbnail",
+        "itemname",
+        "quantity",
+        "price"
+      )
+      .first();
   }
 
-  const [id] = await knex("cart").insert(data);
-  return { id, ...data };
+  const [id] = await knex("cart").insert({
+    ...data,
+    quantity: qty,
+  });
+
+  return {
+    _id: id,
+    userId: data.userId,
+    productId: data.productId,
+    thumbnail: data.thumbnail,
+    itemname: data.itemname,
+    quantity: qty,
+    price: data.price,
+  };
 }
-/* =====================
-     ✅ GET USER CART
-  ===================== */
+
+/* -------------------- GET USER CART -------------------- */
 async function getCartByUserId(userId) {
   if (cfg.db.type === dbs.MONGODB) {
-    return await CartM.find({ userId }).lean();
+    return CartM.find({ userId }).select(CART_FIELDS).lean();
   }
 
-  return knex("cart").where({ userId }).orderBy("createdAt", "desc");
+  return knex("cart")
+    .where({ userId })
+    .orderBy("createdAt", "desc")
+    .select(
+      "id as _id",
+      "userId",
+      "productId",
+      "thumbnail",
+      "itemname",
+      "quantity",
+      "price"
+    );
 }
 
-/* =====================
-     ✅ UPDATE QUANTITY
-  ===================== */
+/* -------------------- UPDATE QUANTITY -------------------- */
 async function updateCartItem(id, quantity) {
+  const qty = Math.max(1, quantity);
+
   if (cfg.db.type === dbs.MONGODB) {
-    return await CartM.findByIdAndUpdate(id, { quantity }, { new: true });
+    return CartM.findByIdAndUpdate(id, { quantity: qty }, { new: true })
+      .select(CART_FIELDS)
+      .lean();
   }
 
-  await knex("cart").where({ id }).update({ quantity });
-  return knex("cart").where({ id }).first();
+  await knex("cart").where({ id }).update({ quantity: qty });
+
+  return knex("cart")
+    .where({ id })
+    .select(
+      "id as _id",
+      "userId",
+      "productId",
+      "thumbnail",
+      "itemname",
+      "quantity",
+      "price"
+    )
+    .first();
 }
 
-/* =====================
-     ✅ DELETE ITEM
-  ===================== */
+/* -------------------- DELETE ITEM -------------------- */
 async function deleteCartItem(id) {
   if (cfg.db.type === dbs.MONGODB) {
-    return await CartM.findByIdAndDelete(id);
+    return CartM.findByIdAndDelete(id)?.select(CART_FIELDS)?.lean();
   }
 
   return knex("cart").where({ id }).del();
 }
 
-/* =====================
-     ✅ CLEAR CART
-  ===================== */
+/* -------------------- CLEAR CART -------------------- */
 async function clearCart(userId) {
   if (cfg.db.type === dbs.MONGODB) {
-    return await CartM.deleteMany({ userId });
+    return CartM.deleteMany({ userId });
   }
 
   return knex("cart").where({ userId }).del();
@@ -130,8 +188,8 @@ async function clearCart(userId) {
 export default {
   init,
   addToCart,
-  deleteCartItem,
-  updateCartItem,
   getCartByUserId,
+  updateCartItem,
+  deleteCartItem,
   clearCart,
 };

@@ -22,6 +22,8 @@ async function init(dbHandles) {
         imageurl: String,
         rating: Number,
         reviewCount: Number,
+
+        isNewArrival: { type: Number, default: false },
       },
       { timestamps: true }
     );
@@ -104,7 +106,15 @@ async function listProducts({
     ]);
 
     return {
-      data,
+      data: data.map((item) => {
+        return {
+          _id: item._id,
+          name: item.name,
+          price: item.price,
+          originalPrice: item.originalPrice,
+          imageurl: item.imageurl,
+        };
+      }),
       pagination: {
         total,
         page,
@@ -207,9 +217,27 @@ async function bulkInsertProducts(products) {
 
 async function getProductById(productId) {
   if (cfg.db.type === dbs.MONGODB) {
-    return ProductM.findById(productId);
+    return ProductM.findById(productId)
+      .select(
+        "_id name description price originalPrice imageurl rating reviewCount stock"
+      )
+      .lean();
   }
-  return knex("products").where({ id: productId }).first();
+
+  return knex("products")
+    .where({ id: productId })
+    .select(
+      "id as _id",
+      "name",
+      "description",
+      "price",
+      "originalPrice",
+      "imageurl",
+      "rating",
+      "reviewCount",
+      "stock"
+    )
+    .first();
 }
 
 async function validateProducts(items) {
@@ -238,6 +266,35 @@ async function validateProducts(items) {
   }
 }
 
+/* -------------------- FEATURED PRODUCTS -------------------- */
+async function listNewProducts({ limit = 8 } = {}) {
+  limit = Math.min(Number(limit), 20);
+
+  /* ----------- MONGODB ----------- */
+  if (cfg.db.type === dbs.MONGODB) {
+    return ProductM.find({ isNewArrival: true })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select("_id name price originalPrice imageurl")
+      .lean();
+  }
+
+  /* ----------- SQL / KNEX ----------- */
+  return knex("products")
+    .where({ isFeatured: true })
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .select(
+      "id as _id",
+      "name",
+      "price",
+      "originalPrice",
+      "imageurl",
+      "rating",
+      "reviewCount"
+    );
+}
+
 export default {
   init,
   createProduct,
@@ -248,4 +305,6 @@ export default {
   getProductById,
   bulkInsertProducts,
   validateProducts,
+
+  listNewProducts,
 };
