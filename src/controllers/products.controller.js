@@ -159,7 +159,7 @@ export const getProductsByCategoriesWithFilter = async (req, res) => {
 
 export const getNewarrivals = async (req, res) => {
   try {
-    const newarrivals = productModel.listNewProducts({ limit: 8 });
+    const newarrivals = await productModel.listNewProducts({ limit: 8 });
     res.status(200).json({
       newarrivals,
       message: Messages.PRODUCT.PRODUCTS_FETCH_SUCCESS,
