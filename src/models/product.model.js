@@ -18,12 +18,13 @@ async function init(dbHandles) {
           ref: "Category",
           required: true,
         },
+        features: [{ type: String }],
         stock: Number,
         imageurl: String,
         rating: Number,
         reviewCount: Number,
 
-        isNewArrival: { type: Number, default: false },
+        isNewArrival: { type: Boolean, default: false },
       },
       { timestamps: true }
     );
@@ -98,6 +99,8 @@ async function listProducts({
     // ✅ SORT
     const sort = {
       [sortBy]: sortOrder === "asc" ? 1 : -1,
+
+      _id: 1,
     };
 
     const [data, total] = await Promise.all([
@@ -219,7 +222,7 @@ async function getProductById(productId) {
   if (cfg.db.type === dbs.MONGODB) {
     return ProductM.findById(productId)
       .select(
-        "_id name description price originalPrice imageurl rating reviewCount stock"
+        "_id name description featuers price originalPrice imageurl rating reviewCount stock"
       )
       .lean();
   }
