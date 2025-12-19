@@ -161,7 +161,13 @@ export const getNewarrivals = async (req, res) => {
   try {
     const newarrivals = await productModel.listNewProducts({ limit: 8 });
     res.status(200).json({
-      newarrivals,
+      data: newarrivals,
+      pagination: {
+        total: 10,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      },
       message: Messages.PRODUCT.PRODUCTS_FETCH_SUCCESS,
     });
   } catch (error) {

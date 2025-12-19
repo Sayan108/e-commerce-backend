@@ -222,7 +222,7 @@ async function getProductById(productId) {
   if (cfg.db.type === dbs.MONGODB) {
     return ProductM.findById(productId)
       .select(
-        "_id name description featuers price originalPrice imageurl rating reviewCount stock"
+        "_id name description features price originalPrice imageurl rating reviewCount stock"
       )
       .lean();
   }
@@ -238,7 +238,8 @@ async function getProductById(productId) {
       "imageurl",
       "rating",
       "reviewCount",
-      "stock"
+      "stock",
+      "features"
     )
     .first();
 }
