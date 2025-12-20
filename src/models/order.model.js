@@ -45,6 +45,8 @@ async function init(dbHandles) {
           required: true,
         },
 
+        orderNumber: { type: String, unique: true, required: true },
+
         shippingAddressId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Address",
@@ -83,7 +85,7 @@ async function init(dbHandles) {
       COMMON SELECT FIELDS
 =========================== */
 const ORDER_FIELDS =
-  "_id userId items total status shippingaddress billingaddress createdAt";
+  "_id userId items total status shippingaddress billingaddress createdAt orderNumber";
 
 /* ===========================
         PLACE ORDER

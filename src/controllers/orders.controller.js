@@ -1,10 +1,10 @@
 import { orderStatuses } from "../config/index.js";
 import { Messages } from "../config/messages.js";
-import orderModel from "../models/order.model.js";
+import orderModel, { OrderStatus } from "../models/order.model.js";
 import productModel from "../models/product.model.js";
 import userModel from "../models/user.model.js";
 import addressModel from "../models/address.model.js";
-import { getAddressString } from "../uttils/index..js";
+import { generateOrderId, getAddressString } from "../uttils/index..js";
 import cartModel from "../models/cart.model.js";
 
 export const createOrder = async (req, res) => {
@@ -62,11 +62,11 @@ export const createOrder = async (req, res) => {
       total: cartTotal,
       shippingAddressId: req.body.shippingAddressId,
       billingAddressId: req.body.billingAddressId,
-
+      orderNumber: generateOrderId(),
       shippingaddress: getAddressString(shippingAddress),
       billingaddress: getAddressString(billingAddress),
 
-      status: orderStatuses.PLACED,
+      status: OrderStatus.PENDING,
     };
 
     // ------------------ CREATE ORDER ------------------
