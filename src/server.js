@@ -1,21 +1,23 @@
 import express from "express";
 import bodyParser from "body-parser";
 
+import cors from "cors";
+import axios from "axios";
+import userModel from "./modules/auth/user.model.js";
+import productModel from "./modules/products/product.model.js";
+import categoryModel from "./modules/categories/category.model.js";
+import orderModel from "./modules/orders/order.model.js";
+import reviewModel from "./modules/reviews/review.model.js";
+import ecommercedashboardModel from "./modules/dashboard/ecommercedashboard.model.js";
+import addressModel from "./modules/address/address.model.js";
+import cartModel from "./modules/cart/cart.model.js";
+
 import { config as cfg, pingUrl } from "./config/index.js";
-import { router as routes } from "./routes/index.js";
+
 import createKnex from "./db/knex.client.js";
 import connectMongoose from "./db/mongoose.client.js";
 
-import userModel from "./models/user.model.js";
-import productModel from "./models/product.model.js";
-import categoryModel from "./models/category.model.js";
-import orderModel from "./models/order.model.js";
-import reviewModel from "./models/review.model.js";
-import ecommercedashboardModel from "./models/ecommercedashboard.model.js";
-import addressModel from "./models/address.model.js";
-import cors from "cors";
-import axios from "axios";
-import cartModel from "./models/cart.model.js";
+import { router as routes } from "./modules/index.js";
 
 async function main() {
   const app = express();
