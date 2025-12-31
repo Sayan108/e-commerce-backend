@@ -1,34 +1,34 @@
 import express from "express";
 const router = express.Router();
-import { authMiddleware } from "../../middleware/auth.middleware.js";
-import {
-  createOrder,
-  getAllOrders,
-  getOrdersByUser,
-  updateOrderDetails,
-  updateOrderStatus,
-} from "./orders.controller.js";
-import { requireRole } from "../../middleware/roles.middleware.js";
+import { AuthMiddleware } from "../../middleware/auth.middleware.js";
+import OrdersController from "./orders.controller.js";
+import { RolesMiddleware } from "../../middleware/roles.middleware.js";
 import { Roles } from "../../config/index.js";
 
-router.post("/", authMiddleware, createOrder);
+const controller = new OrdersController();
 
-router.get("/:id", authMiddleware, getOrdersByUser);
+router.post("/", AuthMiddleware.authMiddleware, controller.createOrder);
+
+router.get("/:id", AuthMiddleware.authMiddleware, controller.getOrdersByUser);
 
 router.get(
   "/",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  getAllOrders
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.getAllOrders
 );
 
-router.put("/:id", authMiddleware, updateOrderDetails);
+router.put(
+  "/:id",
+  AuthMiddleware.authMiddleware,
+  controller.updateOrderDetails
+);
 
 router.patch(
   "/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  updateOrderStatus
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.updateOrderStatus
 );
 
 export { router };

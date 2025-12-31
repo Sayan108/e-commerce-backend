@@ -1,46 +1,41 @@
 import express from "express";
 const router = express.Router();
-import { authMiddleware } from "../../middleware/auth.middleware.js";
-import { requireRole } from "../../middleware/roles.middleware.js";
-import {
-  bulkInsertCategories,
-  createCategory,
-  deleteCategory,
-  getAllCategories,
-  getFeaturedCategories,
-  updateCategory,
-} from "./categories.controller.js";
+import { AuthMiddleware } from "../../middleware/auth.middleware.js";
+import { RolesMiddleware } from "../../middleware/roles.middleware.js";
+import CategoriesController from "./categories.controller.js";
 import { Roles } from "../../config/index.js";
+
+const controller = new CategoriesController();
 
 router.post(
   "/",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  createCategory
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.createCategory
 );
 
 router.delete(
   "/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  deleteCategory
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.deleteCategory
 );
-router.get("/", getAllCategories);
+router.get("/", controller.getAllCategories);
 
 router.put(
   "/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  updateCategory
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.updateCategory
 );
 
 router.post(
   "/bulk-insert",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  bulkInsertCategories
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.bulkInsertCategories
 );
 
-router.get("/featured", getFeaturedCategories);
+router.get("/featured", controller.getFeaturedCategories);
 
 export { router };

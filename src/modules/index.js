@@ -11,17 +11,23 @@ import { router as ecommercedashboard } from "../modules/dashboard/ecommercedash
 import { router as address } from "../modules/address/address.routes.js";
 import { router as cart } from "../modules/cart/cart.routes.js";
 
-const router = express.Router();
+class Modules {
+  static getRouter() {
+    const router = express.Router();
 
-if (cfg.routes.auth) router.use("/auth", auth);
-if (cfg.routes.users) router.use("/users", users);
-if (cfg.routes.products) router.use("/products", products);
-if (cfg.routes.categories) router.use("/categories", categories);
-if (cfg.routes.orders) router.use("/orders", orders);
-if (cfg.routes.reviews) router.use("/reviews", reviews);
-if (cfg.routes.ecommercedashboard)
-  router.use("/ecommercedashboard", ecommercedashboard);
-if (cfg.routes.address) router.use("/address", address);
-if (cfg.routes.cart) router.use("/cart", cart);
+    if (cfg.routes.auth) router.use("/auth", auth);
+    if (cfg.routes.users) router.use("/users", users);
+    if (cfg.routes.products) router.use("/products", products);
+    if (cfg.routes.categories) router.use("/categories", categories);
+    if (cfg.routes.orders) router.use("/orders", orders);
+    if (cfg.routes.reviews) router.use("/reviews", reviews);
+    if (cfg.routes.ecommercedashboard)
+      router.use("/ecommercedashboard", ecommercedashboard);
+    if (cfg.routes.address) router.use("/address", address);
+    if (cfg.routes.cart) router.use("/cart", cart);
 
-export { router };
+    return router;
+  }
+}
+
+export const router = Modules.getRouter();

@@ -1,15 +1,17 @@
 import express from "express";
 
-import { createAdminUser, login, logout, register } from "./auth.controller.js";
+import AuthController from "./auth.controller.js";
 
 const router = express.Router();
 
-router.post("/register", register);
+const controller = new AuthController();
 
-router.post("/login", login);
+router.post("/register", controller.register);
 
-router.post("/logout", logout);
+router.post("/login", controller.login);
 
-router.post("/create-admin", createAdminUser);
+router.post("/logout", controller.logout);
+
+router.post("/create-admin", controller.createAdminUser);
 
 export { router };

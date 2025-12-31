@@ -1,24 +1,21 @@
 import express from "express";
 const router = express.Router();
-import { authMiddleware } from "../../middleware/auth.middleware.js";
-import {
-  createAddress,
-  deleteAddress,
-  getAllAddresses,
-  updateAddress,
-} from "./address.controller.js";
+import { AuthMiddleware } from "../../middleware/auth.middleware.js";
+import AddressController from "./address.controller.js";
+
+const controller = new AddressController();
 
 router.post(
   "/",
-  authMiddleware,
+  AuthMiddleware.authMiddleware,
 
-  createAddress
+  controller.createAddress
 );
 
-router.delete("/:id", authMiddleware, deleteAddress);
+router.delete("/:id", AuthMiddleware.authMiddleware, controller.deleteAddress);
 
-router.get("/", authMiddleware, getAllAddresses);
+router.get("/", AuthMiddleware.authMiddleware, controller.getAllAddresses);
 
-router.put("/:id", authMiddleware, updateAddress);
+router.put("/:id", AuthMiddleware.authMiddleware, controller.updateAddress);
 
 export { router };

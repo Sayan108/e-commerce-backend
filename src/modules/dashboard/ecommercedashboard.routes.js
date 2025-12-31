@@ -1,111 +1,98 @@
 import express from "express";
 const router = express.Router();
 
-import { authMiddleware } from "../../middleware/auth.middleware.js";
-import { requireRole } from "../../middleware/roles.middleware.js";
+import { AuthMiddleware } from "../../middleware/auth.middleware.js";
+import { RolesMiddleware } from "../../middleware/roles.middleware.js";
 
 import { Roles } from "../../config/index.js";
-import {
-  createDashBoardBanner,
-  createDashboardVideo,
-  deleteDashBoardBanner,
-  deleteDashboardVideo,
-  getAllDashBoardBanners,
-  getDashboardVideos,
-  updateDashBoardBanner,
-  updateDashboardVideo,
-  listFaqs,
-  createFaq,
-  deleteFaq,
-  bulkUpdateFaqs,
-  getContactUsInfo,
-  createOrUpdateContactUsInfo,
-} from "./ecommercedashboard.controller.js";
+import EcommerceDashboardController from "./ecommercedashboard.controller.js";
+
+const controller = new EcommerceDashboardController();
 
 /* ===================== BANNER ===================== */
 
 router.post(
   "/banner",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  createDashBoardBanner
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.createDashBoardBanner
 );
 
-router.get("/banner", getAllDashBoardBanners);
+router.get("/banner", controller.getAllDashBoardBanners);
 
 router.delete(
   "/banner/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  deleteDashBoardBanner
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.deleteDashBoardBanner
 );
 
 router.put(
   "/banner/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  updateDashBoardBanner
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.updateDashBoardBanner
 );
 
 /* ===================== VIDEOS ===================== */
 
-router.get("/videos", getDashboardVideos);
+router.get("/videos", controller.getDashboardVideos);
 
 router.post(
   "/videos",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  createDashboardVideo
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.createDashboardVideo
 );
 
 router.put(
   "/videos/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  updateDashboardVideo
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.updateDashboardVideo
 );
 
 router.delete(
   "/videos/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  deleteDashboardVideo
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.deleteDashboardVideo
 );
 
 /* ===================== FAQ ===================== */
 
 // Public
-router.get("/faq", listFaqs);
+router.get("/faq", controller.listFaqs);
 
 // Admin
 router.post(
   "/faq",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  createFaq
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.createFaq
 );
 
 router.delete(
   "/faq/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  deleteFaq
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.deleteFaq
 );
 
 router.post(
   "/faq/bulk-insert",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  bulkUpdateFaqs
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.bulkUpdateFaqs
 );
 
-router.get("/contactusinfo", getContactUsInfo);
+router.get("/contactusinfo", controller.getContactUsInfo);
 
 router.post(
   "/contactusinfo",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  createOrUpdateContactUsInfo
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.createOrUpdateContactUsInfo
 );
 
 export { router };

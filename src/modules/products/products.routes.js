@@ -1,50 +1,44 @@
 import express from "express";
 const router = express.Router();
-import { authMiddleware } from "../../middleware/auth.middleware.js";
-import { requireRole } from "../../middleware/roles.middleware.js";
+import { AuthMiddleware } from "../../middleware/auth.middleware.js";
+import { RolesMiddleware } from "../../middleware/roles.middleware.js";
 import { Roles } from "../../config/index.js";
-import {
-  bulkInsertProducts,
-  createProducts,
-  deleteProduct,
-  getNewarrivals,
-  getProductById,
-  getProductsByCategoriesWithFilter,
-  updateProduct,
-} from "./products.controller.js";
+import ProductsController from "./products.controller.js";
+
+const controller = new ProductsController();
 
 router.post(
   "/",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  createProducts
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.createProducts
 );
 
-router.get("/newarrival", getNewarrivals);
+router.get("/newarrival", controller.getNewarrivals);
 
-router.get("/:id", getProductById);
+router.get("/:id", controller.getProductById);
 
-router.get("/", getProductsByCategoriesWithFilter);
+router.get("/", controller.getProductsByCategoriesWithFilter);
 
 router.put(
   "/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  updateProduct
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.updateProduct
 );
 
 router.delete(
   "/:id",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  deleteProduct
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.deleteProduct
 );
 
 router.post(
   "/bulk-insert",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  bulkInsertProducts
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.bulkInsertProducts
 );
 
 export { router };

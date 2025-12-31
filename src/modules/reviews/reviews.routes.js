@@ -1,27 +1,23 @@
 import express from "express";
 const router = express.Router();
-import { authMiddleware } from "../../middleware/auth.middleware.js";
+import { AuthMiddleware } from "../../middleware/auth.middleware.js";
 
-import {
-  deleteReview,
-  getProductReviews,
-  postReview,
-  updateReview,
-  bulkInsertReviews,
-} from "./reviews.controller.js";
-import { requireRole } from "../../middleware/roles.middleware.js";
+import ReviewsController from "./reviews.controller.js";
+import { RolesMiddleware } from "../../middleware/roles.middleware.js";
 import { Roles } from "../../config/index.js";
 
-router.post("/", authMiddleware, postReview);
+const controller = new ReviewsController();
+
+router.post("/", AuthMiddleware.authMiddleware, controller.postReview);
 router.post(
   "/bulk",
-  authMiddleware,
-  requireRole(Roles.ADMIN, Roles.SUPERADMIN),
-  bulkInsertReviews
+  AuthMiddleware.authMiddleware,
+  RolesMiddleware.requireRole(Roles.ADMIN, Roles.SUPERADMIN),
+  controller.bulkInsertReviews
 );
 
-router.get("/:productId", getProductReviews);
-router.put("/:id", authMiddleware, updateReview);
-router.delete("/:id", authMiddleware, deleteReview);
+router.get("/:productId", controller.getProductReviews);
+router.put("/:id", AuthMiddleware.authMiddleware, controller.updateReview);
+router.delete("/:id", AuthMiddleware.authMiddleware, controller.deleteReview);
 
 export { router };
